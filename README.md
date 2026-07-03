@@ -19,7 +19,7 @@ npm run dev
 
 ## Server
 
-Default public test URL: `http://82.157.202.171:3000`.
+Default public test URL: `http://82.157.202.171`.
 
 ## Deploy
 
@@ -43,4 +43,3 @@ Useful service commands:
 sudo systemctl restart super-video-resolver
 journalctl -u super-video-resolver -f
 ```
-

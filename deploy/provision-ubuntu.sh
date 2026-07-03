@@ -9,9 +9,9 @@ python3 -m venv "$HOME/.local/share/yt-dlp-venv"
 "$HOME/.local/share/yt-dlp-venv/bin/pip" install --upgrade pip yt-dlp
 ln -sf "$HOME/.local/share/yt-dlp-venv/bin/yt-dlp" "$HOME/.local/bin/yt-dlp"
 
+sudo ufw allow 80/tcp || true
 sudo ufw allow 3000/tcp || true
 node -v
 npm -v
 "$HOME/.local/bin/yt-dlp" --version
 ffmpeg -version | head -1
-
