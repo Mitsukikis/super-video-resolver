@@ -150,6 +150,11 @@ export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
   const executable = process.env.YT_DLP_BIN || "yt-dlp";
   const timeoutMs = Number(process.env.RESOLVE_TIMEOUT_MS ?? "60000");
   const args = ["--dump-single-json", "--no-playlist", "--no-warnings"];
+  const proxy = process.env.YT_DLP_PROXY?.trim();
+
+  if (proxy && (input.platform === "youtube" || input.platform === "x")) {
+    args.push("--proxy", proxy);
+  }
 
   if (input.temporaryCookie) {
     args.push("--add-header", `Cookie:${input.temporaryCookie}`);
