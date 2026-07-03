@@ -634,7 +634,7 @@ function TrackSelector({
 
       <VariantSelector variants={model.variants} selectedId={selectedVariant.id} onSelect={setSelectedId} />
 
-      <div className="selected-resource">
+      <div className="selected-resource" aria-label="当前选择的资源摘要">
         <div>
           <span>当前输出</span>
           <strong>{selectedVariant.label}</strong>
