@@ -148,7 +148,7 @@ export function convertYtDlpInfoToManifest(
 
 export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
   const executable = process.env.YT_DLP_BIN || "yt-dlp";
-  const timeoutMs = Number(process.env.RESOLVE_TIMEOUT_MS ?? "25000");
+  const timeoutMs = Number(process.env.RESOLVE_TIMEOUT_MS ?? "60000");
   const args = ["--dump-single-json", "--no-playlist", "--no-warnings"];
 
   if (input.temporaryCookie) {
@@ -208,4 +208,3 @@ export function createYtDlpResolver(platform: Platform): ResolverPlugin {
     }
   };
 }
-
