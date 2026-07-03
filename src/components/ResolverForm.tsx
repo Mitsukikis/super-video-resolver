@@ -38,17 +38,28 @@ export function ResolverForm({ loggedIn }: ResolverFormProps) {
   }
 
   return (
-    <div className="stack">
-      <section className="panel stack">
+    <div className="resolver-stack">
+      <section className="panel resolver-panel stack">
+        <div className="panel-heading">
+          <p className="panel-kicker">解析控制台</p>
+          <h2>输入视频链接</h2>
+          <p className="muted">服务器只返回解析清单，视频流量留在用户自己的设备上。</p>
+        </div>
+
         <div className="field">
           <label htmlFor="video-url">视频链接</label>
-          <input
-            id="video-url"
-            className="input"
-            value={url}
-            onChange={(event) => setUrl(event.target.value)}
-            placeholder="https://www.youtube.com/watch?v=... 或 https://www.bilibili.com/video/..."
-          />
+          <div className="command-input">
+            <input
+              id="video-url"
+              className="input"
+              value={url}
+              onChange={(event) => setUrl(event.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... 或 https://www.bilibili.com/video/..."
+            />
+            <button className="button primary-action" type="button" onClick={resolve} disabled={!url || state.status === "loading"}>
+              {state.status === "loading" ? "解析中..." : "开始解析"}
+            </button>
+          </div>
         </div>
 
         {loggedIn ? (
@@ -67,12 +78,6 @@ export function ResolverForm({ loggedIn }: ResolverFormProps) {
           <p className="muted">登录后可使用临时 Cookie，解析高清或账号可见的视频结果。</p>
         )}
 
-        <div className="row">
-          <button className="button" type="button" onClick={resolve} disabled={!url || state.status === "loading"}>
-            {state.status === "loading" ? "解析中..." : "开始解析"}
-          </button>
-          <span className="muted">服务器只返回解析清单，视频流量留在用户自己的设备上。</span>
-        </div>
         {state.status === "error" ? <p className="error">{state.message}</p> : null}
       </section>
 

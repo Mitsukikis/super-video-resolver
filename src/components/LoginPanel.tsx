@@ -35,9 +35,12 @@ export function LoginPanel({ loggedIn }: LoginPanelProps) {
 
   if (loggedIn) {
     return (
-      <div className="panel row">
-        <strong>已登录</strong>
-        <span className="muted">已开启临时 Cookie 解析和更高请求额度。</span>
+      <div className="panel auth-panel row">
+        <div>
+          <p className="panel-kicker">可信入口</p>
+          <strong>已登录</strong>
+          <span className="muted">已开启临时 Cookie 解析和更高请求额度。</span>
+        </div>
         <button className="button secondary" type="button" onClick={logout}>
           退出登录
         </button>
@@ -46,19 +49,20 @@ export function LoginPanel({ loggedIn }: LoginPanelProps) {
   }
 
   return (
-    <div className="panel stack">
+    <div className="panel auth-panel stack">
       <div>
+        <p className="panel-kicker">可信入口</p>
         <strong>访客模式</strong>
-        <p className="muted">公开链接可以直接解析，但额度较低。登录后可为单次解析临时使用 Cookie。</p>
+        <p className="muted">公开链接可直接解析。输入访问码后，可临时使用 Cookie 并获得更高额度。</p>
       </div>
-      <div className="row">
+      <div className="row auth-row">
         <input
           className="input"
-          style={{ maxWidth: 320 }}
           type="password"
           value={accessCode}
           onChange={(event) => setAccessCode(event.target.value)}
-          placeholder="访问码"
+          placeholder="输入访问码"
+          aria-label="访问码"
         />
         <button className="button" type="button" onClick={submitLogin} disabled={loading || !accessCode}>
           {loading ? "验证中..." : "登录"}

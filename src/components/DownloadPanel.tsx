@@ -74,7 +74,7 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
   }
 
   return (
-    <div className="panel stack">
+    <div className="download-surface stack">
       <div>
         <h3>下载方式</h3>
         <p className="muted">当前选择：{variant.label}</p>

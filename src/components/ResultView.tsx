@@ -38,7 +38,7 @@ export function ResultView({ manifest }: ResultViewProps) {
   );
 
   return (
-    <section className="panel stack">
+    <section className="result-surface stack">
       <div className="grid">
         {manifest.thumbnailUrl ? (
           <img
@@ -56,7 +56,7 @@ export function ResultView({ manifest }: ResultViewProps) {
       </div>
 
       {manifest.warnings.length ? (
-        <div className="panel warning">
+        <div className="warning-block">
           {manifest.warnings.map((warning) => (
             <p key={warning}>{warning}</p>
           ))}
