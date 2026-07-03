@@ -1,0 +1,18 @@
+[Unit]
+Description=Super Video Resolver
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/super-video-resolver
+Environment=NODE_ENV=production
+Environment=PORT=3000
+EnvironmentFile=-/home/ubuntu/apps/super-video-resolver/.env.production
+ExecStart=/usr/bin/npm run start -- -p 3000 -H 0.0.0.0
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

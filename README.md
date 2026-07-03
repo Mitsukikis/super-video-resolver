@@ -21,3 +21,26 @@ npm run dev
 
 Default public test URL: `http://82.157.202.171:3000`.
 
+## Deploy
+
+Provision once:
+
+```bash
+bash deploy/provision-ubuntu.sh
+```
+
+Deploy or update on the server:
+
+```bash
+bash deploy/deploy.sh
+```
+
+The production environment file lives at `/home/ubuntu/apps/super-video-resolver/.env.production` and is not committed.
+
+Useful service commands:
+
+```bash
+sudo systemctl restart super-video-resolver
+journalctl -u super-video-resolver -f
+```
+
