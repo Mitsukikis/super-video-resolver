@@ -1,8 +1,12 @@
 import { spawn } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Manifest, Platform, Track, Variant } from "@/lib/manifest";
 import { ManifestSchema } from "@/lib/manifest";
 import { buildFallbacks } from "@/lib/command";
 import { detectPlatform } from "@/lib/platform";
+import { classifyTemporaryCookie } from "./cookieInput";
 import type { ResolveInput, ResolverPlugin } from "./types";
 import { resolverProfiles } from "./profiles";
 
@@ -58,6 +62,17 @@ function formatLabel(track: Track) {
   if (track.height) return `${track.height}p`;
   if (track.bitrateKbps) return `${track.bitrateKbps} kbps`;
   return track.id;
+}
+
+export function formatYtDlpError(message: string) {
+  const text = message.trim();
+  if (/twitter].*No video could be found in this tweet/i.test(text)) {
+    return "X/Twitter 没在这条帖子里找到可下载视频。可能是图片/文字帖、引用帖、私密/敏感/登录可见内容，或需要粘贴 X 的临时 Cookie。";
+  }
+  if (/login|sign in|cookies?|authentication|unauthori[sz]ed/i.test(text)) {
+    return "该平台需要账号态。请先输入本站访问码，再粘贴对应平台的临时 Cookie 后重试。";
+  }
+  return text || "解析失败";
 }
 
 export function convertYtDlpInfoToManifest(
@@ -161,48 +176,61 @@ export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
   const timeoutMs = Number(process.env.RESOLVE_TIMEOUT_MS ?? "60000");
   const args = ["--dump-single-json", "--no-playlist", "--no-warnings"];
   const proxy = process.env.YT_DLP_PROXY?.trim();
+  let cookieTempDir: string | undefined;
 
   if (proxy && (input.platform === "youtube" || input.platform === "x")) {
     args.push("--proxy", proxy);
   }
 
-  if (input.temporaryCookie) {
-    args.push("--add-header", `Cookie:${input.temporaryCookie}`);
+  const cookieInput = classifyTemporaryCookie(input.temporaryCookie);
+  if (cookieInput.kind === "header") {
+    args.push(...cookieInput.args);
+  } else if (cookieInput.kind === "file") {
+    cookieTempDir = await mkdtemp(join(tmpdir(), "super-video-cookies-"));
+    const cookiePath = join(cookieTempDir, "cookies.txt");
+    await writeFile(cookiePath, cookieInput.content, { mode: 0o600 });
+    args.push("--cookies", cookiePath);
   }
 
   args.push(input.url.toString());
 
-  const output = await new Promise<string>((resolve, reject) => {
-    const child = spawn(executable, args, { shell: false });
-    let stdout = "";
-    let stderr = "";
-    const timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      reject(new Error("解析超时"));
-    }, timeoutMs);
+  try {
+    const output = await new Promise<string>((resolve, reject) => {
+      const child = spawn(executable, args, { shell: false });
+      let stdout = "";
+      let stderr = "";
+      const timer = setTimeout(() => {
+        child.kill("SIGKILL");
+        reject(new Error("解析超时"));
+      }, timeoutMs);
 
-    child.stdout.on("data", (chunk) => {
-      stdout += String(chunk);
+      child.stdout.on("data", (chunk) => {
+        stdout += String(chunk);
+      });
+      child.stderr.on("data", (chunk) => {
+        stderr += String(chunk);
+      });
+      child.on("error", (error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+      child.on("close", (code) => {
+        clearTimeout(timer);
+        if (code === 0 && stdout.trim()) {
+          resolve(stdout);
+          return;
+        }
+        reject(new Error(formatYtDlpError(stderr.trim() || `yt-dlp exited with code ${code}`)));
+      });
     });
-    child.stderr.on("data", (chunk) => {
-      stderr += String(chunk);
-    });
-    child.on("error", (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
-    child.on("close", (code) => {
-      clearTimeout(timer);
-      if (code === 0 && stdout.trim()) {
-        resolve(stdout);
-        return;
-      }
-      reject(new Error(stderr.trim() || `yt-dlp exited with code ${code}`));
-    });
-  });
 
-  const info = JSON.parse(output) as YtDlpInfo;
-  return convertYtDlpInfoToManifest(info, input.platform, input.url.toString(), Boolean(input.temporaryCookie));
+    const info = JSON.parse(output) as YtDlpInfo;
+    return convertYtDlpInfoToManifest(info, input.platform, input.url.toString(), Boolean(input.temporaryCookie));
+  } finally {
+    if (cookieTempDir) {
+      await rm(cookieTempDir, { recursive: true, force: true });
+    }
+  }
 }
 
 export function createYtDlpResolver(platform: Platform): ResolverPlugin {

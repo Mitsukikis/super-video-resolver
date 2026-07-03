@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { convertYtDlpInfoToManifest } from "@/lib/resolvers/ytDlp";
+import { convertYtDlpInfoToManifest, formatYtDlpError } from "@/lib/resolvers/ytDlp";
 
 describe("convertYtDlpInfoToManifest", () => {
   it("creates combined and split variants", () => {
@@ -38,5 +38,11 @@ describe("convertYtDlpInfoToManifest", () => {
 
     expect(manifest.tracks[0].width).toBeUndefined();
     expect(manifest.tracks[0].sizeBytes).toBeUndefined();
+  });
+
+  it("turns Twitter no-video errors into a helpful Chinese message", () => {
+    expect(formatYtDlpError("ERROR: [twitter] 2072701117067342056: No video could be found in this tweet")).toContain(
+      "X/Twitter 没在这条帖子里找到可下载视频"
+    );
   });
 });

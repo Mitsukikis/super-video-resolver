@@ -54,7 +54,7 @@ export function ResolverForm({ loggedIn }: ResolverFormProps) {
               className="input"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
-              placeholder="https://www.youtube.com/watch?v=... 或 https://www.bilibili.com/video/..."
+              placeholder="https://x.com/... 或 https://www.bilibili.com/video/..."
             />
             <button className="button primary-action" type="button" onClick={resolve} disabled={!url || state.status === "loading"}>
               {state.status === "loading" ? "解析中..." : "开始解析"}
@@ -64,18 +64,18 @@ export function ResolverForm({ loggedIn }: ResolverFormProps) {
 
         {loggedIn ? (
           <div className="field">
-            <label htmlFor="temporary-cookie">临时 Cookie</label>
+            <label htmlFor="temporary-cookie">平台 Cookie（可选）</label>
             <textarea
               id="temporary-cookie"
               className="textarea"
               value={temporaryCookie}
               onChange={(event) => setTemporaryCookie(event.target.value)}
-              placeholder="可选。只用于本次解析请求，不会保存。"
+              placeholder="可粘贴 Cookie 请求头：auth_token=...; ct0=...，也支持 cookies.txt / Netscape 导出内容。"
             />
-            <p className="muted">Cookie 内容只会传给本次解析请求，不会持久化保存。</p>
+            <p className="muted">这里填的是 X / YouTube / B站账号 Cookie，不是本站访问码。内容只用于本次解析请求，不会保存。</p>
           </div>
         ) : (
-          <p className="muted">登录后可使用临时 Cookie，解析高清或账号可见的视频结果。</p>
+          <p className="muted">如果视频需要账号态，请先用本站访问码解锁，再粘贴对应平台 Cookie 后重试。</p>
         )}
 
         {state.status === "error" ? <p className="error">{state.message}</p> : null}
