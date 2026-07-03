@@ -5,7 +5,7 @@ import { createResolveService } from "@/lib/server/resolveService";
 describe("resolveService", () => {
   it("rejects unsupported platforms", async () => {
     const service = createResolveService([], new MemoryRateLimiter());
-    await expect(service.resolve({ url: "https://example.com/video", ip: "1.1.1.1" })).rejects.toThrow("Unsupported platform");
+    await expect(service.resolve({ url: "https://example.com/video", ip: "1.1.1.1" })).rejects.toThrow("暂不支持该平台");
   });
 
   it("requires login for temporary cookies", async () => {
@@ -16,7 +16,6 @@ describe("resolveService", () => {
         ip: "1.1.1.1",
         temporaryCookie: "SID=x"
       })
-    ).rejects.toThrow("Login is required");
+    ).rejects.toThrow("使用临时 Cookie 解析需要先登录");
   });
 });
-

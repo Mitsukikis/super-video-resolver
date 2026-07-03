@@ -21,9 +21,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, manifest });
   } catch (error) {
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : "Resolve failed" },
+      { ok: false, error: error instanceof Error ? error.message : "解析失败" },
       { status: 400 }
     );
   }
 }
-

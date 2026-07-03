@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   if (!process.env.ACCESS_CODE || body.accessCode !== process.env.ACCESS_CODE) {
-    return NextResponse.json({ ok: false, error: "Invalid access code" }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "访问码不正确" }, { status: 401 });
   }
 
   const response = NextResponse.json({ ok: true });
@@ -20,4 +20,3 @@ export async function POST(request: NextRequest) {
   });
   return response;
 }
-

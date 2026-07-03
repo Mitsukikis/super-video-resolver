@@ -22,7 +22,7 @@ export function LoginPanel({ loggedIn }: LoginPanelProps) {
     const payload = await response.json();
     setLoading(false);
     if (!payload.ok) {
-      setMessage(payload.error ?? "Login failed");
+      setMessage(payload.error ?? "登录失败");
       return;
     }
     location.reload();
@@ -36,10 +36,10 @@ export function LoginPanel({ loggedIn }: LoginPanelProps) {
   if (loggedIn) {
     return (
       <div className="panel row">
-        <strong>Logged in</strong>
-        <span className="muted">Temporary cookie parsing and higher quotas are enabled.</span>
+        <strong>已登录</strong>
+        <span className="muted">已开启临时 Cookie 解析和更高请求额度。</span>
         <button className="button secondary" type="button" onClick={logout}>
-          Log out
+          退出登录
         </button>
       </div>
     );
@@ -48,8 +48,8 @@ export function LoginPanel({ loggedIn }: LoginPanelProps) {
   return (
     <div className="panel stack">
       <div>
-        <strong>Guest mode</strong>
-        <p className="muted">Public links work with a lower quota. Log in to use temporary cookies for one request.</p>
+        <strong>访客模式</strong>
+        <p className="muted">公开链接可以直接解析，但额度较低。登录后可为单次解析临时使用 Cookie。</p>
       </div>
       <div className="row">
         <input
@@ -58,14 +58,13 @@ export function LoginPanel({ loggedIn }: LoginPanelProps) {
           type="password"
           value={accessCode}
           onChange={(event) => setAccessCode(event.target.value)}
-          placeholder="Access code"
+          placeholder="访问码"
         />
         <button className="button" type="button" onClick={submitLogin} disabled={loading || !accessCode}>
-          {loading ? "Checking..." : "Log in"}
+          {loading ? "验证中..." : "登录"}
         </button>
       </div>
       {message ? <p className="error">{message}</p> : null}
     </div>
   );
 }
-

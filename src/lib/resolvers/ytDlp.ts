@@ -93,7 +93,7 @@ export function convertYtDlpInfoToManifest(
 
   const variants: Variant[] = combinedTracks.map((track) => ({
     id: `combined-${track.id}`,
-    label: `${formatLabel(track)} combined`,
+    label: `${formatLabel(track)} 已合并`,
     kind: "combined",
     action: "direct-save",
     combinedTrackId: track.id,
@@ -110,7 +110,7 @@ export function convertYtDlpInfoToManifest(
     if (!bestAudio) continue;
     variants.push({
       id: `split-${video.id}-${bestAudio.id}`,
-      label: `${formatLabel(video)} video + audio`,
+      label: `${formatLabel(video)} 视频+音频`,
       kind: "split",
       action: "browser-merge",
       videoTrackId: video.id,
@@ -143,13 +143,13 @@ export function convertYtDlpInfoToManifest(
   const manifest = {
     sourceUrl,
     platform,
-    title: info.title ?? "Untitled video",
+    title: info.title ?? "未命名视频",
     author: info.uploader ?? info.channel,
     durationSeconds: positiveNumber(info.duration),
     thumbnailUrl: info.thumbnail ?? undefined,
     variants,
     tracks,
-    warnings: containsCookie ? ["This result used a temporary cookie. Do not share generated commands containing cookies."] : [],
+    warnings: containsCookie ? ["本次解析使用了临时 Cookie。请勿分享包含 Cookie 的命令或链接。"] : [],
     fallbacks: buildFallbacks(sourceUrl, containsCookie)
   };
 
@@ -178,7 +178,7 @@ export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
     let stderr = "";
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
-      reject(new Error("Resolver timed out"));
+      reject(new Error("解析超时"));
     }, timeoutMs);
 
     child.stdout.on("data", (chunk) => {

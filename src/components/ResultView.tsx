@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Manifest } from "@/lib/manifest";
+import type { Manifest, Variant } from "@/lib/manifest";
 import { DownloadPanel } from "./DownloadPanel";
 
 type ResultViewProps = {
@@ -9,13 +9,26 @@ type ResultViewProps = {
 };
 
 function formatDuration(seconds?: number) {
-  if (!seconds) return "Unknown duration";
+  if (!seconds) return "时长未知";
   const minutes = Math.floor(seconds / 60);
   const remainder = Math.floor(seconds % 60)
     .toString()
     .padStart(2, "0");
   return `${minutes}:${remainder}`;
 }
+
+const variantKindLabels: Record<Variant["kind"], string> = {
+  combined: "已合并",
+  split: "音视频分离",
+  stream: "流媒体"
+};
+
+const variantActionLabels: Record<Variant["action"], string> = {
+  "direct-save": "直链下载",
+  "browser-merge": "浏览器合并",
+  "local-tool": "本地工具",
+  unsupported: "暂不支持"
+};
 
 export function ResultView({ manifest }: ResultViewProps) {
   const [selectedId, setSelectedId] = useState(manifest.variants[0]?.id ?? "");
@@ -37,8 +50,8 @@ export function ResultView({ manifest }: ResultViewProps) {
         <div>
           <p className="eyebrow">{manifest.platform}</p>
           <h2>{manifest.title}</h2>
-          <p className="muted">{manifest.author ?? "Unknown author"} · {formatDuration(manifest.durationSeconds)}</p>
-          <p className="muted">{manifest.tracks.length} tracks · {manifest.variants.length} download options</p>
+          <p className="muted">{manifest.author ?? "作者未知"} | {formatDuration(manifest.durationSeconds)}</p>
+          <p className="muted">{manifest.tracks.length} 条媒体轨道 | {manifest.variants.length} 个下载选项</p>
         </div>
       </div>
 
@@ -60,11 +73,11 @@ export function ResultView({ manifest }: ResultViewProps) {
             style={{ textAlign: "left" }}
           >
             <strong>{variant.label}</strong>
-            <p className="muted">{variant.kind} · {variant.action}</p>
+            <p className="muted">{variantKindLabels[variant.kind]} | {variantActionLabels[variant.action]}</p>
             <p className="muted">
               {[variant.width && variant.height ? `${variant.width}x${variant.height}` : null, variant.fps ? `${variant.fps} fps` : null, variant.container]
                 .filter(Boolean)
-                .join(" · ") || "Metadata unavailable"}
+                .join(" | ") || "暂无媒体参数"}
             </p>
           </button>
         ))}
@@ -74,4 +87,3 @@ export function ResultView({ manifest }: ResultViewProps) {
     </section>
   );
 }
-

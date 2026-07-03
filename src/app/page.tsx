@@ -11,11 +11,11 @@ export default async function HomePage() {
     <main className="app-shell">
       <section className="resolver-surface">
         <div>
-          <p className="eyebrow">No server video proxy</p>
-          <h1>Super Video Resolver</h1>
+          <p className="eyebrow">服务器不代下载视频</p>
+          <h1>超级视频解析</h1>
           <p className="subcopy">
-            Parse supported video links, pick HD tracks, merge in your browser when possible, or copy local-tool commands.
-            The server resolves metadata only and never downloads video files for users.
+            粘贴支持的视频链接，解析高清轨道；能直下就让浏览器直连源站下载，音视频分离时可在本机浏览器合并，也可以复制本地工具命令。
+            服务器只返回解析清单，不代理、不保存、不替用户下载视频文件。
           </p>
         </div>
         <LoginPanel loggedIn={loggedIn} />

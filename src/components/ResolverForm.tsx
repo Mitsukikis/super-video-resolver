@@ -31,7 +31,7 @@ export function ResolverForm({ loggedIn }: ResolverFormProps) {
     });
     const payload = await response.json();
     if (!payload.ok) {
-      setState({ status: "error", message: payload.error ?? "Resolve failed" });
+      setState({ status: "error", message: payload.error ?? "解析失败" });
       return;
     }
     setState({ status: "success", manifest: payload.manifest });
@@ -41,37 +41,37 @@ export function ResolverForm({ loggedIn }: ResolverFormProps) {
     <div className="stack">
       <section className="panel stack">
         <div className="field">
-          <label htmlFor="video-url">Video link</label>
+          <label htmlFor="video-url">视频链接</label>
           <input
             id="video-url"
             className="input"
             value={url}
             onChange={(event) => setUrl(event.target.value)}
-            placeholder="https://www.youtube.com/watch?v=... or https://www.bilibili.com/video/..."
+            placeholder="https://www.youtube.com/watch?v=... 或 https://www.bilibili.com/video/..."
           />
         </div>
 
         {loggedIn ? (
           <div className="field">
-            <label htmlFor="temporary-cookie">Temporary cookie</label>
+            <label htmlFor="temporary-cookie">临时 Cookie</label>
             <textarea
               id="temporary-cookie"
               className="textarea"
               value={temporaryCookie}
               onChange={(event) => setTemporaryCookie(event.target.value)}
-              placeholder="Optional. Used once for this resolve request, never stored."
+              placeholder="可选。只用于本次解析请求，不会保存。"
             />
-            <p className="muted">Cookie text is passed only to this resolver request and is never persisted.</p>
+            <p className="muted">Cookie 内容只会传给本次解析请求，不会持久化保存。</p>
           </div>
         ) : (
-          <p className="muted">Log in to enable temporary cookie parsing for HD or account-visible results.</p>
+          <p className="muted">登录后可使用临时 Cookie，解析高清或账号可见的视频结果。</p>
         )}
 
         <div className="row">
           <button className="button" type="button" onClick={resolve} disabled={!url || state.status === "loading"}>
-            {state.status === "loading" ? "Resolving..." : "Resolve link"}
+            {state.status === "loading" ? "解析中..." : "开始解析"}
           </button>
-          <span className="muted">Server returns a manifest only. Video traffic stays on the user's device.</span>
+          <span className="muted">服务器只返回解析清单，视频流量留在用户自己的设备上。</span>
         </div>
         {state.status === "error" ? <p className="error">{state.message}</p> : null}
       </section>
@@ -80,4 +80,3 @@ export function ResolverForm({ loggedIn }: ResolverFormProps) {
     </div>
   );
 }
-

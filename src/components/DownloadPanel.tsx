@@ -14,6 +14,14 @@ function findTrack(manifest: Manifest, id?: string) {
   return manifest.tracks.find((track) => track.id === id);
 }
 
+const trackKindLabels: Record<Track["kind"], string> = {
+  video: "视频",
+  audio: "音频",
+  combined: "已合并",
+  hls: "HLS",
+  dash: "DASH"
+};
+
 async function copy(text: string) {
   await navigator.clipboard.writeText(text);
 }
@@ -22,7 +30,7 @@ function directLink(track?: Track) {
   if (!track) return null;
   return (
     <a className="button" href={track.url} target="_blank" rel="noreferrer">
-      Open direct media URL
+      打开直链下载
     </a>
   );
 }
@@ -40,7 +48,7 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
 
   async function browserMerge() {
     setError(null);
-    setStatus("Checking browser access...");
+    setStatus("正在检查浏览器访问能力...");
     const check = await checkBrowserMerge(videoTrack, audioTrack);
     if (!check.ok) {
       setStatus(null);
@@ -58,9 +66,9 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
       anchor.download = `${manifest.title}.mp4`;
       anchor.click();
       URL.revokeObjectURL(url);
-      setStatus("Merged file saved.");
+      setStatus("合并文件已保存。");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Browser merge failed. Use a local-tool fallback.");
+      setError(caught instanceof Error ? caught.message : "浏览器合并失败，请改用本地工具命令。");
       setStatus(null);
     }
   }
@@ -68,14 +76,14 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
   return (
     <div className="panel stack">
       <div>
-        <h3>Download action</h3>
-        <p className="muted">Selected: {variant.label}</p>
+        <h3>下载方式</h3>
+        <p className="muted">当前选择：{variant.label}</p>
       </div>
 
       {variant.action === "direct-save" ? (
         <div className="row">
           {directLink(combinedTrack)}
-          <span className="muted">Your browser downloads from the source URL, not from this server.</span>
+          <span className="muted">浏览器会从源站直连下载，不经过本站服务器。</span>
         </div>
       ) : null}
 
@@ -83,9 +91,9 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
         <div className="stack">
           <div className="row">
             <button className="button" type="button" onClick={browserMerge}>
-              Merge in browser
+              在浏览器中合并
             </button>
-            <span className="muted">If CORS blocks this, use the commands below.</span>
+            <span className="muted">如果源站 CORS 阻止访问，请使用下方本地命令。</span>
           </div>
           {status ? <p className="muted">{status}</p> : null}
           {error ? <p className="error">{error}</p> : null}
@@ -93,24 +101,24 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
       ) : null}
 
       <details>
-        <summary>Track URLs</summary>
+        <summary>媒体轨道链接</summary>
         <div className="stack" style={{ marginTop: 12 }}>
           {[videoTrack, audioTrack, combinedTrack].filter(Boolean).map((track) => (
             <div key={(track as Track).id} className="code-block">
-              {(track as Track).kind}: {(track as Track).url}
+              {trackKindLabels[(track as Track).kind]}: {(track as Track).url}
             </div>
           ))}
         </div>
       </details>
 
       <div className="stack">
-        <h3>Local-tool fallbacks</h3>
+        <h3>本地工具命令</h3>
         {ffmpegCommand ? (
           <div className="stack">
-            <strong>ffmpeg merge</strong>
+            <strong>ffmpeg 合并</strong>
             <pre className="code-block">{ffmpegCommand}</pre>
             <button className="button secondary" type="button" onClick={() => copy(ffmpegCommand)}>
-              Copy ffmpeg command
+              复制 ffmpeg 命令
             </button>
           </div>
         ) : null}
@@ -118,10 +126,10 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
         {manifest.fallbacks.map((fallback) => (
           <div className="stack" key={fallback.id}>
             <strong>{fallback.label}</strong>
-            {fallback.containsSensitiveData ? <p className="warning">This command may involve local cookies. Do not share it.</p> : null}
+            {fallback.containsSensitiveData ? <p className="warning">此命令可能涉及本地 Cookie，请勿分享。</p> : null}
             <pre className="code-block">{fallback.command}</pre>
             <button className="button secondary" type="button" onClick={() => copy(fallback.command)}>
-              Copy command
+              复制命令
             </button>
           </div>
         ))}
@@ -129,4 +137,3 @@ export function DownloadPanel({ manifest, variant }: DownloadPanelProps) {
     </div>
   );
 }
-

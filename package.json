@@ -1,6 +1,7 @@
 {
   "name": "super-video-resolver",
   "version": "0.1.0",
+  "description": "超级视频解析网站，服务器只返回解析清单，下载和合并在用户本机完成。",
   "private": true,
   "type": "module",
   "scripts": {

@@ -19,7 +19,6 @@ self.onmessage = async (event: MessageEvent<MergeRequest>) => {
     const file = await ffmpeg.readFile("output.mp4");
     self.postMessage({ type: "done", file });
   } catch (error) {
-    self.postMessage({ type: "error", message: error instanceof Error ? error.message : "Browser merge failed" });
+    self.postMessage({ type: "error", message: error instanceof Error ? error.message : "浏览器合并失败" });
   }
 };
-
