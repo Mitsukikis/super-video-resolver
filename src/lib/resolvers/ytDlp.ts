@@ -12,13 +12,13 @@ type YtDlpFormat = {
   ext?: string;
   vcodec?: string;
   acodec?: string;
-  width?: number;
-  height?: number;
-  fps?: number;
-  tbr?: number;
-  abr?: number;
-  filesize?: number;
-  filesize_approx?: number;
+  width?: number | null;
+  height?: number | null;
+  fps?: number | null;
+  tbr?: number | null;
+  abr?: number | null;
+  filesize?: number | null;
+  filesize_approx?: number | null;
   protocol?: string;
 };
 
@@ -27,10 +27,19 @@ type YtDlpInfo = {
   title?: string;
   uploader?: string;
   channel?: string;
-  duration?: number;
-  thumbnail?: string;
+  duration?: number | null;
+  thumbnail?: string | null;
   formats?: YtDlpFormat[];
 };
+
+function positiveNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+function positiveInt(value: number | null | undefined) {
+  const number = positiveNumber(value);
+  return number ? Math.round(number) : undefined;
+}
 
 function trackKind(format: YtDlpFormat): Track["kind"] {
   const protocol = format.protocol?.toLowerCase() ?? "";
@@ -68,11 +77,11 @@ export function convertYtDlpInfoToManifest(
       url: format.url,
       container: format.ext,
       codec: [format.vcodec, format.acodec].filter(Boolean).filter((value) => value !== "none").join(",") || undefined,
-      bitrateKbps: Math.round(format.tbr ?? format.abr ?? 0) || undefined,
-      width: format.width,
-      height: format.height,
-      fps: format.fps,
-      sizeBytes: format.filesize ?? format.filesize_approx
+      bitrateKbps: positiveInt(format.tbr ?? format.abr),
+      width: positiveInt(format.width),
+      height: positiveInt(format.height),
+      fps: positiveNumber(format.fps),
+      sizeBytes: positiveInt(format.filesize ?? format.filesize_approx)
     });
   }
 
@@ -135,8 +144,8 @@ export function convertYtDlpInfoToManifest(
     platform,
     title: info.title ?? "Untitled video",
     author: info.uploader ?? info.channel,
-    durationSeconds: info.duration,
-    thumbnailUrl: info.thumbnail,
+    durationSeconds: positiveNumber(info.duration),
+    thumbnailUrl: info.thumbnail ?? undefined,
     variants,
     tracks,
     warnings: containsCookie ? ["This result used a temporary cookie. Do not share generated commands containing cookies."] : [],

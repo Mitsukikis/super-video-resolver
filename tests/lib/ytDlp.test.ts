@@ -12,5 +12,31 @@ describe("convertYtDlpInfoToManifest", () => {
     expect(manifest.variants.some((variant) => variant.action === "browser-merge")).toBe(true);
     expect(manifest.fallbacks.some((fallback) => fallback.id === "yt-dlp")).toBe(true);
   });
-});
 
+  it("normalizes null numeric fields from yt-dlp", () => {
+    const manifest = convertYtDlpInfoToManifest(
+      {
+        title: "Null fields",
+        formats: [
+          {
+            format_id: "audio-null",
+            url: "https://media.example/audio.m4a",
+            ext: "m4a",
+            vcodec: "none",
+            acodec: "mp4a",
+            width: null,
+            height: null,
+            fps: null,
+            filesize: null
+          }
+        ]
+      },
+      "youtube",
+      "https://www.youtube.com/watch?v=abc",
+      false
+    );
+
+    expect(manifest.tracks[0].width).toBeUndefined();
+    expect(manifest.tracks[0].sizeBytes).toBeUndefined();
+  });
+});
