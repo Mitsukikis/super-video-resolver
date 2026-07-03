@@ -1,0 +1,47 @@
+import { randomUUID } from "node:crypto";
+import type { Manifest } from "@/lib/manifest";
+import { detectPlatform, normalizeInputUrl } from "@/lib/platform";
+import { checkPolicy } from "@/lib/policy";
+import { MemoryRateLimiter, resolveRateLimiter } from "@/lib/rateLimit";
+import type { ResolverPlugin } from "@/lib/resolvers/types";
+
+export type ResolveRequest = {
+  url: string;
+  ip: string;
+  isLoggedIn?: boolean;
+  temporaryCookie?: string;
+};
+
+export function createResolveService(plugins: ResolverPlugin[], limiter: MemoryRateLimiter = resolveRateLimiter) {
+  return {
+    async resolve(request: ResolveRequest): Promise<Manifest> {
+      const url = normalizeInputUrl(request.url);
+      const platform = detectPlatform(url);
+      if (!platform) throw new Error("Unsupported platform");
+
+      const policy = checkPolicy(url);
+      if (!policy.allowed) throw new Error(policy.reason);
+
+      const cookie = request.temporaryCookie?.trim();
+      if (cookie && !request.isLoggedIn) {
+        throw new Error("Login is required for temporary cookie parsing");
+      }
+
+      const limit = cookie ? 20 : request.isLoggedIn ? 100 : 20;
+      const identity = `${request.ip}:${platform}:${request.isLoggedIn ? "user" : "guest"}:${cookie ? "cookie" : "public"}`;
+      const rate = limiter.check(identity, limit, 60 * 60 * 1000);
+      if (!rate.allowed) throw new Error("Rate limit exceeded");
+
+      const plugin = plugins.find((candidate) => candidate.id === platform && candidate.match(url));
+      if (!plugin) throw new Error("Resolver unavailable");
+
+      return plugin.resolve({
+        url,
+        platform,
+        temporaryCookie: cookie,
+        requestId: randomUUID()
+      });
+    }
+  };
+}
+

@@ -1,0 +1,20 @@
+{
+  "webpage_url": "https://x.com/user/status/1",
+  "extractor_key": "Twitter",
+  "title": "X Fixture",
+  "uploader": "Fixture User",
+  "duration": 12,
+  "thumbnail": "https://i.example/x.jpg",
+  "formats": [
+    {
+      "format_id": "http-720",
+      "url": "https://media.example/x.mp4",
+      "ext": "mp4",
+      "vcodec": "avc1",
+      "acodec": "mp4a",
+      "width": 1280,
+      "height": 720,
+      "tbr": 1600
+    }
+  ]
+}

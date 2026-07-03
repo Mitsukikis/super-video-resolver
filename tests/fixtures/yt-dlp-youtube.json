@@ -1,0 +1,40 @@
+{
+  "webpage_url": "https://www.youtube.com/watch?v=abc",
+  "extractor_key": "Youtube",
+  "title": "Fixture Video",
+  "uploader": "Fixture Author",
+  "duration": 120,
+  "thumbnail": "https://i.example/thumb.jpg",
+  "formats": [
+    {
+      "format_id": "137",
+      "url": "https://media.example/video.mp4",
+      "ext": "mp4",
+      "vcodec": "avc1.640028",
+      "acodec": "none",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "tbr": 4500
+    },
+    {
+      "format_id": "140",
+      "url": "https://media.example/audio.m4a",
+      "ext": "m4a",
+      "vcodec": "none",
+      "acodec": "mp4a.40.2",
+      "abr": 128
+    },
+    {
+      "format_id": "18",
+      "url": "https://media.example/combined.mp4",
+      "ext": "mp4",
+      "vcodec": "avc1.42001E",
+      "acodec": "mp4a.40.2",
+      "width": 640,
+      "height": 360,
+      "tbr": 600
+    }
+  ]
+}
+

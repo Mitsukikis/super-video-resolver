@@ -1,0 +1,29 @@
+{
+  "webpage_url": "https://www.bilibili.com/video/BV1xx",
+  "extractor_key": "BiliBili",
+  "title": "Bilibili Fixture",
+  "uploader": "Fixture UP",
+  "duration": 88,
+  "thumbnail": "https://i.example/bili.jpg",
+  "formats": [
+    {
+      "format_id": "video-1080",
+      "url": "https://media.example/bili-video.mp4",
+      "ext": "mp4",
+      "vcodec": "avc1",
+      "acodec": "none",
+      "width": 1920,
+      "height": 1080,
+      "tbr": 3200
+    },
+    {
+      "format_id": "audio",
+      "url": "https://media.example/bili-audio.m4a",
+      "ext": "m4a",
+      "vcodec": "none",
+      "acodec": "mp4a",
+      "abr": 192
+    }
+  ]
+}
+
