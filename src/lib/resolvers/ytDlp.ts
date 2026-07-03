@@ -70,6 +70,7 @@ export function convertYtDlpInfoToManifest(
 
   for (const format of info.formats ?? []) {
     if (!format.url || !format.format_id) continue;
+    if (format.ext === "mhtml" || format.protocol === "mhtml") continue;
     const kind = trackKind(format);
     tracks.push({
       id: format.format_id,
