@@ -680,7 +680,7 @@ function TaskCenter({ tasks }: { tasks: DownloadTask[] }) {
       </div>
 
       {tasks.length ? (
-        <div className="task-list">
+        <div className="task-list" aria-live="polite">
           {tasks.map((task) => (
             <article className={`task-item is-${task.status}`} key={task.id}>
               <span>{taskStatusLabels[task.status]}</span>
