@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
   async headers() {
     return [
       {
@@ -15,4 +16,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
