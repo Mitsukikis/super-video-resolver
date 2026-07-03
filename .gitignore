@@ -11,4 +11,4 @@ Thumbs.db
 outputs/
 work/
 *.log
-
+tsconfig.tsbuildinfo
