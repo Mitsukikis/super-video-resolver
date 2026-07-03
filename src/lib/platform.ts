@@ -6,6 +6,10 @@ export function normalizeInputUrl(input: string): URL {
     throw new Error("请输入视频链接");
   }
 
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) && !/^https?:\/\//i.test(trimmed)) {
+    throw new Error("Only HTTP/HTTPS links are supported");
+  }
+
   const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
   const url = new URL(withProtocol);
   if (url.protocol !== "http:" && url.protocol !== "https:") {
