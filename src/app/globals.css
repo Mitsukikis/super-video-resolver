@@ -235,6 +235,7 @@ dd {
   display: grid;
   gap: 18px;
   margin-top: 22px;
+  scroll-margin-top: 96px;
 }
 
 .hero-copy-v2 {
@@ -1002,6 +1003,7 @@ dd {
   gap: 14px;
   margin-top: 18px;
   padding: 18px;
+  scroll-margin-top: 96px;
 }
 
 .task-list {
@@ -1063,6 +1065,7 @@ dd {
   gap: 16px;
   margin-top: 18px;
   padding: 22px;
+  scroll-margin-top: 96px;
 }
 
 .platform-grid {
@@ -1288,7 +1291,7 @@ dd {
 
 @media (max-width: 420px) {
   .hero-copy-v2 h1 {
-    font-size: 36px;
+    font-size: 34px;
   }
 
   .detector-main {
