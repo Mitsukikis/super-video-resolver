@@ -3,6 +3,7 @@ set -euo pipefail
 
 APP_DIR=/home/ubuntu/apps/super-video-resolver
 REPO_URL=${REPO_URL:-https://github.com/Mitsukikis/super-video-resolver.git}
+DEPLOY_REF=${DEPLOY_REF:-main}
 
 mkdir -p /home/ubuntu/apps
 if [ ! -d "$APP_DIR/.git" ]; then
@@ -20,8 +21,8 @@ if [ ! -d "$APP_DIR/.git" ]; then
 fi
 
 cd "$APP_DIR"
-git fetch origin main
-git reset --hard origin/main
+git fetch origin "$DEPLOY_REF"
+git reset --hard "origin/$DEPLOY_REF"
 npm ci
 npm run build
 sudo cp deploy/super-video-resolver.service /etc/systemd/system/super-video-resolver.service
@@ -29,4 +30,3 @@ sudo systemctl daemon-reload
 sudo systemctl enable super-video-resolver
 sudo systemctl restart super-video-resolver
 sudo systemctl status super-video-resolver --no-pager
-
