@@ -47,14 +47,14 @@ export const platformCapabilities: Record<UiPlatformId, PlatformCapability> = {
     id: "bilibili",
     label: "Bilibili",
     shortLabel: "B站",
-    domains: ["bilibili.com"],
-    status: "supported",
-    statusLabel: "已支持",
+    domains: ["bilibili.com", "b23.tv"],
+    status: "limited",
+    statusLabel: "有限支持",
     resolveEnabled: true,
     cookieRequirement: "sometimes",
     browserMerge: "unlikely",
     outputTypes: ["已合并", "音视频分离", "HLS/DASH"],
-    notes: "公开链接可解析；高画质或账号可见内容可能需要平台 Cookie。"
+    notes: "公开视频可尝试解析；源站策略、HTTP 412、高清画质或账号态内容可能需要用户自己的 Bilibili Cookie。"
   },
   x: {
     id: "x",
@@ -186,4 +186,3 @@ export function detectInputPlatform(input: string): PlatformDetection {
     message: "当前只能解析 YouTube、Bilibili 和 X / Twitter 链接。"
   };
 }
-

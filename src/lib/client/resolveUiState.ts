@@ -5,11 +5,14 @@ export type ResolveErrorKind =
   | "cookie-missing"
   | "cookie-invalid"
   | "login-required"
+  | "permission-denied"
   | "protected-content"
   | "rate-limited"
   | "timeout"
   | "no-downloadable-resource"
   | "network"
+  | "source-blocked"
+  | "parser-outdated"
   | "server-config"
   | "parser-failed"
   | "unknown";
@@ -35,7 +38,7 @@ export function classifyResolveError(message: string): ClassifiedResolveError {
     };
   }
 
-  if (/Invalid URL|仅支持 HTTP|链接格式|Failed to parse URL/i.test(text)) {
+  if (/Invalid URL|仅支持 HTTP|Only HTTP\/HTTPS|链接格式|Failed to parse URL/i.test(text)) {
     return {
       kind: "invalid-url",
       title: "链接格式错误",
@@ -65,6 +68,26 @@ export function classifyResolveError(message: string): ClassifiedResolveError {
     };
   }
 
+  if (/Bilibili 源站请求策略拦截|HTTP 412|Precondition Failed/i.test(text)) {
+    return {
+      kind: "source-blocked",
+      title: "Bilibili 源站策略拦截",
+      message: "Bilibili 返回了 HTTP 412，通常表示当前请求被源站策略拦截，或该内容需要平台 Cookie。",
+      nextAction: "确认链接是公开视频；如仍失败，登录本站后粘贴自己的 Bilibili 临时 Cookie，或稍后重试。",
+      retry: true
+    };
+  }
+
+  if (/Bilibili Cookie 可能已失效|Cookie.*失效|cookie.*expired|invalid.*cookie/i.test(text)) {
+    return {
+      kind: "cookie-invalid",
+      title: "Cookie 可能已失效",
+      message: "当前平台 Cookie 可能过期、格式不完整，或不属于 Bilibili。",
+      nextAction: "重新从自己的浏览器导出 Bilibili Cookie 后再试；不要分享 Cookie。",
+      retry: true
+    };
+  }
+
   if (/使用临时 Cookie 解析需要先登录/.test(text)) {
     return {
       kind: "cookie-missing",
@@ -75,7 +98,17 @@ export function classifyResolveError(message: string): ClassifiedResolveError {
     };
   }
 
-  if (/Cookie|cookies?|authentication|unauthori[sz]ed|登录|账号态|sign in/i.test(text)) {
+  if (/权限不足|Forbidden|permission|not allowed|Bilibili Cookie 权限不足/i.test(text)) {
+    return {
+      kind: "permission-denied",
+      title: "账号权限不足",
+      message: "当前账号态无权访问该内容，或内容本身受权限限制。",
+      nextAction: "请确认自己有权访问该公开视频；本站不绕过会员、付费、DRM 或私密权限。",
+      retry: false
+    };
+  }
+
+  if (/需要登录态|需要账号态|Cookie|cookies?|authentication|unauthori[sz]ed|登录|账号态|sign in/i.test(text)) {
     return {
       kind: "login-required",
       title: "需要平台账号态",
@@ -115,7 +148,17 @@ export function classifyResolveError(message: string): ClassifiedResolveError {
     };
   }
 
-  if (/No video could be found|没在这条帖子里找到可下载视频|没有可下载资源/i.test(text)) {
+  if (/解析器可能需要更新|update yt-dlp|Unsupported URL|Unable to extract|extractor/i.test(text)) {
+    return {
+      kind: "parser-outdated",
+      title: "解析器可能需要更新",
+      message: "当前 yt-dlp 版本可能无法解析这个链接格式或源站返回。",
+      nextAction: "联系管理员更新 yt-dlp，或换一个公开视频链接测试。",
+      retry: true
+    };
+  }
+
+  if (/No video could be found|没在这条帖子里找到可下载视频|没有可下载资源|不存在|已删除|deleted|removed|not found/i.test(text)) {
     return {
       kind: "no-downloadable-resource",
       title: "没有可下载资源",

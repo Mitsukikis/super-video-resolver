@@ -68,6 +68,20 @@ function formatLabel(track: Track) {
   return track.id;
 }
 
+const bilibiliUserAgent =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
+
+export function buildYtDlpBaseArgs(platform: Platform) {
+  const args = ["--dump-single-json", "--no-playlist", "--no-warnings", "--retries", "2", "--fragment-retries", "2"];
+
+  if (platform === "bilibili") {
+    args.push("--add-header", "Referer:https://www.bilibili.com/");
+    args.push("--add-header", `User-Agent:${bilibiliUserAgent}`);
+  }
+
+  return args;
+}
+
 function toPublicYtDlpError(message: string) {
   const lines = message
     .trim()
@@ -87,8 +101,28 @@ function toPublicYtDlpError(message: string) {
 
 export function formatYtDlpError(message: string) {
   const text = toPublicYtDlpError(message);
-  if (/ENOENT|not found|is not recognized|No such file or directory/i.test(text)) {
+  if (/ENOENT|is not recognized|No such file or directory|yt-dlp(?:\.exe)?: command not found/i.test(text)) {
     return resolverDependencyMissingMessage;
+  }
+  if (/BiliBili|bilibili/i.test(text)) {
+    if (/HTTP Error 412|412: Precondition Failed|Precondition Failed/i.test(text)) {
+      return "Bilibili 源站请求策略拦截（HTTP 412）。这通常表示当前请求需要平台 Cookie、合理请求头，或源站临时风控。请确认是公开视频，登录本站后粘贴自己的 Bilibili Cookie，或稍后重试。";
+    }
+    if (/cookie.*(invalid|expired)|invalid.*cookie|SESSDATA|bili_jct|DedeUserID/i.test(text)) {
+      return "Bilibili Cookie 可能已失效，请重新导出自己的 Bilibili Cookie 后再试。Cookie 只会用于本次解析请求。";
+    }
+    if (/login|sign in|cookies?|authentication|unauthori[sz]ed|not logged in/i.test(text)) {
+      return "Bilibili 需要登录态。请先输入本站访问码，再粘贴自己的 Bilibili 临时 Cookie 后重试。";
+    }
+    if (/403|Forbidden|permission|not allowed|insufficient|权限不足/i.test(text)) {
+      return "Bilibili Cookie 权限不足或内容受限。请确认账号有权访问该公开视频；本站不绕过会员、付费、DRM 或私密权限。";
+    }
+    if (/404|not found|不存在|已删除|deleted|removed/i.test(text)) {
+      return "Bilibili 视频不存在或已删除。请检查 BV / av / 分 P 链接是否完整。";
+    }
+    if (/Unsupported URL|Unable to extract|extractor|update yt-dlp/i.test(text)) {
+      return "Bilibili 解析器可能需要更新。请联系管理员更新 yt-dlp 后重试。";
+    }
   }
   if (/twitter].*No video could be found in this tweet/i.test(text)) {
     return "X/Twitter 没在这条帖子里找到可下载视频。可能是图片/文字帖、引用帖、私密/敏感/登录可见内容，或需要粘贴 X 的临时 Cookie。";
@@ -202,7 +236,7 @@ export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
   }
 
   const timeoutMs = Number(process.env.RESOLVE_TIMEOUT_MS ?? "60000");
-  const args = ["--dump-single-json", "--no-playlist", "--no-warnings"];
+  const args = buildYtDlpBaseArgs(input.platform);
   const proxy = process.env.YT_DLP_PROXY?.trim();
   let cookieTempDir: string | undefined;
 
