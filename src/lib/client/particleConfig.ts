@@ -19,15 +19,15 @@ function clamp(value: number, min: number, max: number) {
 export function getParticleSettings(input: ParticleSettingsInput): ParticleSettings {
   const width = Math.max(0, input.width);
   const area = width * Math.max(0, input.height);
-  const densityCount = Math.round(area / 11800);
-  const desktopCount = clamp(densityCount, 64, 110);
-  const mobileCount = width < 720 ? 42 : desktopCount;
-  const reducedCount = input.reducedMotion ? Math.min(34, mobileCount) : mobileCount;
+  const densityCount = Math.round(area / 22000);
+  const desktopCount = clamp(densityCount, 32, 58);
+  const mobileCount = width < 720 ? 0 : desktopCount;
+  const reducedCount = input.reducedMotion ? 0 : mobileCount;
 
   return {
     count: reducedCount,
-    linkDistance: width < 720 ? 104 : 136,
-    speed: input.reducedMotion ? 0 : width < 720 ? 0.28 : 0.42,
-    interactionRadius: width < 720 ? 120 : 180
+    linkDistance: width < 720 ? 0 : 118,
+    speed: input.reducedMotion || width < 720 ? 0 : 0.28,
+    interactionRadius: width < 720 ? 0 : 150
   };
 }

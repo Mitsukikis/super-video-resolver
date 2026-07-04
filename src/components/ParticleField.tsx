@@ -52,6 +52,19 @@ export function ParticleField() {
       reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches
     });
     const pointer = { x: 0, y: 0, active: false };
+    let lastFrameAt = 0;
+
+    function shouldAnimate() {
+      return settings.count > 0 && settings.speed > 0;
+    }
+
+    function startLoop() {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+      if (shouldAnimate()) {
+        frameId = window.requestAnimationFrame(tick);
+      }
+    }
 
     function resize() {
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -70,9 +83,11 @@ export function ParticleField() {
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       particles = Array.from({ length: settings.count }, () => makeParticle(width, height, settings.speed));
       draw();
+      startLoop();
     }
 
     function drawLinks() {
+      if (settings.count < 2) return;
       for (let i = 0; i < particles.length; i += 1) {
         for (let j = i + 1; j < particles.length; j += 1) {
           const first = particles[i];
@@ -145,8 +160,12 @@ export function ParticleField() {
       }
     }
 
-    function tick() {
-      draw();
+    function tick(timestamp: number) {
+      if (!shouldAnimate()) return;
+      if (timestamp - lastFrameAt >= 33) {
+        draw();
+        lastFrameAt = timestamp;
+      }
       frameId = window.requestAnimationFrame(tick);
     }
 
@@ -163,15 +182,15 @@ export function ParticleField() {
     function handleVisibilityChange() {
       if (document.hidden) {
         window.cancelAnimationFrame(frameId);
+        frameId = 0;
         return;
       }
-      frameId = window.requestAnimationFrame(tick);
+      startLoop();
     }
 
     resize();
-    frameId = window.requestAnimationFrame(tick);
     window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
     window.addEventListener("pointerleave", handlePointerLeave);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 

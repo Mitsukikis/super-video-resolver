@@ -2,8 +2,8 @@
   color-scheme: dark;
   --bg: #080a0d;
   --bg-grid: rgba(199, 255, 64, 0.045);
-  --surface: rgba(18, 20, 21, 0.92);
-  --surface-soft: rgba(24, 27, 28, 0.86);
+  --surface: rgba(18, 20, 21, 0.97);
+  --surface-soft: rgba(24, 27, 28, 0.94);
   --surface-strong: #151719;
   --line: rgba(255, 255, 255, 0.1);
   --line-strong: rgba(199, 255, 64, 0.42);
@@ -19,8 +19,8 @@
   --danger: #fb7185;
   --radius-sm: 6px;
   --radius-md: 8px;
-  --shadow-soft: 0 22px 70px rgba(0, 0, 0, 0.38);
-  --shadow-tight: 0 12px 34px rgba(0, 0, 0, 0.28);
+  --shadow-soft: 0 16px 42px rgba(0, 0, 0, 0.3);
+  --shadow-tight: 0 8px 22px rgba(0, 0, 0, 0.24);
   --max-page: 1440px;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -40,25 +40,18 @@ body {
   min-height: 100%;
   margin: 0;
   background:
-    linear-gradient(var(--bg-grid) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(57, 216, 200, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 85% 18%, rgba(215, 255, 63, 0.14), transparent 28%),
-    radial-gradient(circle at 18% 72%, rgba(57, 216, 200, 0.1), transparent 32%),
+    linear-gradient(rgba(199, 255, 64, 0.034) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 216, 200, 0.024) 1px, transparent 1px),
+    radial-gradient(circle at 85% 18%, rgba(215, 255, 63, 0.1), transparent 26%),
     linear-gradient(145deg, #070809 0%, #0d1113 48%, #11100d 100%);
-  background-size: 44px 44px, 44px 44px, auto, auto, auto;
+  background-size: 56px 56px, 56px 56px, auto, auto;
   color: var(--text);
   font-family: "Inter", "PingFang SC", "Microsoft YaHei", Arial, Helvetica, sans-serif;
   overflow-x: hidden;
 }
 
 body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background: linear-gradient(100deg, transparent 0%, rgba(215, 255, 63, 0.06) 48%, transparent 62%);
-  animation: scanline 9s linear infinite;
+  content: none;
 }
 
 button,
@@ -112,7 +105,8 @@ dd {
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  opacity: 0.5;
+  contain: strict;
+  opacity: 0.34;
 }
 
 .app-shell {
@@ -135,9 +129,8 @@ dd {
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(10, 12, 13, 0.82);
+  background: rgba(10, 12, 13, 0.94);
   box-shadow: var(--shadow-tight);
-  backdrop-filter: blur(18px);
 }
 
 .brand-mark,
@@ -217,12 +210,12 @@ dd {
   height: 8px;
   border-radius: 999px;
   background: var(--warning);
-  box-shadow: 0 0 16px rgba(251, 191, 36, 0.7);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.52);
 }
 
 .status-dot.is-ok {
   background: var(--success);
-  box-shadow: 0 0 16px rgba(74, 222, 128, 0.7);
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.52);
 }
 
 .nav-divider {
@@ -319,9 +312,8 @@ dd {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(13, 15, 16, 0.84);
+  background: rgba(13, 15, 16, 0.94);
   box-shadow: var(--shadow-tight);
-  backdrop-filter: blur(18px);
 }
 
 .rail-group {
@@ -391,6 +383,27 @@ dd {
   gap: 14px;
 }
 
+.hero-copy-v2,
+.access-panel,
+.resolver-card,
+.result-panel,
+.media-summary,
+.download-composer,
+.task-center,
+.content-section,
+.warning-panel,
+.platform-card,
+.process-list article {
+  contain: paint;
+}
+
+.results-zone,
+.task-center,
+.content-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}
+
 .access-panel,
 .resolver-card,
 .result-panel,
@@ -403,7 +416,6 @@ dd {
   border-radius: var(--radius-md);
   background: var(--surface);
   box-shadow: var(--shadow-tight);
-  backdrop-filter: blur(18px);
 }
 
 .access-panel {
@@ -593,7 +605,7 @@ dd {
   padding: 10px 16px;
   background: linear-gradient(135deg, #d7ff3f, #88ff7a);
   color: #101204;
-  box-shadow: 0 14px 34px rgba(215, 255, 63, 0.16);
+  box-shadow: 0 10px 22px rgba(215, 255, 63, 0.12);
 }
 
 .primary-button.secondary {
@@ -1177,6 +1189,10 @@ dd {
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
   }
+
+  .particle-field {
+    display: none;
+  }
 }
 
 @media (max-width: 1120px) {
@@ -1209,6 +1225,17 @@ dd {
 }
 
 @media (max-width: 760px) {
+  body {
+    background:
+      radial-gradient(circle at 76% 0%, rgba(215, 255, 63, 0.08), transparent 30%),
+      linear-gradient(145deg, #070809 0%, #0c1012 55%, #100f0c 100%);
+    background-size: auto;
+  }
+
+  .particle-field {
+    display: none;
+  }
+
   .app-shell {
     padding: 14px;
   }
@@ -1216,6 +1243,7 @@ dd {
   .top-nav {
     position: static;
     grid-template-columns: 1fr;
+    box-shadow: none;
   }
 
   .nav-status {
@@ -1274,6 +1302,7 @@ dd {
   .result-panel {
     max-width: 100%;
     overflow: hidden;
+    box-shadow: none;
   }
 
   .resolver-footnote {
