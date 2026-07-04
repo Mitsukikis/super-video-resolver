@@ -9,6 +9,10 @@ import { detectPlatform } from "@/lib/platform";
 import { classifyTemporaryCookie } from "./cookieInput";
 import type { ResolveInput, ResolverPlugin } from "./types";
 import { resolverProfiles } from "./profiles";
+import {
+  resolveYtDlpExecutable,
+  resolverDependencyMissingMessage
+} from "@/lib/server/runtimeCapabilities";
 
 type YtDlpFormat = {
   format_id?: string;
@@ -64,8 +68,28 @@ function formatLabel(track: Track) {
   return track.id;
 }
 
+function toPublicYtDlpError(message: string) {
+  const lines = message
+    .trim()
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !/RequestsDependencyWarning|warnings\.warn\(/i.test(line))
+    .filter((line) => !/site-packages[\\/].*requests[\\/]__init__\.py/i.test(line));
+  const preferred = lines.filter((line) => /^(ERROR|WARNING):/i.test(line));
+  const selected = (preferred.length ? preferred : lines).join("\n") || message.trim();
+
+  return selected
+    .replace(/[A-Z]:\\[^\r\n]+/g, "[server-path-redacted]")
+    .replace(/\/(?:[^/\s]+\/){2,}[^/\s]+/g, "[server-path-redacted]")
+    .replace(/https?:\/\/\S+/g, "[url-redacted]");
+}
+
 export function formatYtDlpError(message: string) {
-  const text = message.trim();
+  const text = toPublicYtDlpError(message);
+  if (/ENOENT|not found|is not recognized|No such file or directory/i.test(text)) {
+    return resolverDependencyMissingMessage;
+  }
   if (/twitter].*No video could be found in this tweet/i.test(text)) {
     return "X/Twitter 没在这条帖子里找到可下载视频。可能是图片/文字帖、引用帖、私密/敏感/登录可见内容，或需要粘贴 X 的临时 Cookie。";
   }
@@ -172,7 +196,11 @@ export function convertYtDlpInfoToManifest(
 }
 
 export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
-  const executable = process.env.YT_DLP_BIN || "yt-dlp";
+  const executable = resolveYtDlpExecutable();
+  if (!executable.available) {
+    throw new Error(executable.message);
+  }
+
   const timeoutMs = Number(process.env.RESOLVE_TIMEOUT_MS ?? "60000");
   const args = ["--dump-single-json", "--no-playlist", "--no-warnings"];
   const proxy = process.env.YT_DLP_PROXY?.trim();
@@ -196,7 +224,7 @@ export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
 
   try {
     const output = await new Promise<string>((resolve, reject) => {
-      const child = spawn(executable, args, { shell: false });
+      const child = spawn(executable.command, args, { shell: false });
       let stdout = "";
       let stderr = "";
       const timer = setTimeout(() => {

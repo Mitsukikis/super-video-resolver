@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { buildFfmpegMergeCommand } from "@/lib/command";
 import { checkBrowserMerge, mergeTracksWithFfmpeg } from "@/lib/client/browserMerge";
 import { buildResourceModel, describeTrack, formatBytes, type ResourceVariant } from "@/lib/client/resourceModel";
@@ -26,6 +26,14 @@ type ResolveState = {
   step: string;
   error?: ClassifiedResolveError;
   manifest?: Manifest;
+};
+
+type RuntimeStatus = {
+  resolverReady: boolean;
+  ytDlpAvailable: boolean;
+  ffmpegAvailable: boolean;
+  tempDirectoryWritable: boolean;
+  browserMergeEnabled: boolean;
 };
 
 type TaskStatus = "waiting" | "downloading" | "merging" | "completed" | "cancelled" | "failed";
@@ -722,6 +730,7 @@ export function UniversalResolverWorkspace({ loggedIn, livePlatforms, plannedPla
   const [state, setState] = useState<ResolveState>({ status: "idle", step: "等待输入链接" });
   const [tasks, setTasks] = useState<DownloadTask[]>([]);
   const [selectedModuleId, setSelectedModuleId] = useState<string>(livePlatforms[0]?.id ?? "youtube");
+  const [runtimeStatus, setRuntimeStatus] = useState<RuntimeStatus | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const taskCounterRef = useRef(0);
   const detection = useMemo(() => detectInputPlatform(url), [url]);
@@ -729,7 +738,33 @@ export function UniversalResolverWorkspace({ loggedIn, livePlatforms, plannedPla
   const allCapabilities = useMemo(() => [...livePlatforms, ...plannedPlatforms], [livePlatforms, plannedPlatforms]);
   const activeCapability = detection.capability ?? allCapabilities.find((platform) => platform.id === selectedModuleId);
   const activePlatformId = detection.platformId ?? selectedModuleId;
-  const canSubmit = detection.canResolve && state.status !== "loading";
+  const runtimeUnavailable = runtimeStatus ? !runtimeStatus.resolverReady : false;
+  const runtimeError: ClassifiedResolveError | null = runtimeUnavailable
+    ? {
+        kind: "server-config",
+        title: "服务器解析组件未就绪",
+        message: "服务器尚未安装视频解析组件，请联系管理员完成配置。",
+        nextAction: "管理员需要安装 yt-dlp，并确认服务进程可以通过 YTDLP_PATH 或 PATH 找到它。",
+        retry: false
+      }
+    : null;
+  const canSubmit = detection.canResolve && state.status !== "loading" && !runtimeUnavailable;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/runtime", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((payload: RuntimeStatus) => {
+        if (!cancelled) setRuntimeStatus(payload);
+      })
+      .catch(() => {
+        if (!cancelled) setRuntimeStatus(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function createTask(task: Omit<DownloadTask, "id" | "createdAt">) {
     taskCounterRef.current += 1;
@@ -760,7 +795,7 @@ export function UniversalResolverWorkspace({ loggedIn, livePlatforms, plannedPla
 
   async function submitResolve(event?: FormEvent) {
     event?.preventDefault();
-    const clientError = validationErrorFromDetection(detection);
+    const clientError = runtimeError ?? validationErrorFromDetection(detection);
     if (clientError) {
       setState({ status: "error", step: clientError.title, error: clientError });
       return;
@@ -856,6 +891,8 @@ export function UniversalResolverWorkspace({ loggedIn, livePlatforms, plannedPla
 
               <PlatformDetector detection={detection} />
 
+              {runtimeError ? <ResolveErrorView error={runtimeError} /> : null}
+
               {activeCapability ? (
                 <div className="module-brief">
                   <strong>{activeCapability.label} 模块</strong>
@@ -924,7 +961,15 @@ export function UniversalResolverWorkspace({ loggedIn, livePlatforms, plannedPla
 
               <div className="resolver-footnote">
                 <span>支持状态：{detection.capability?.statusLabel ?? "等待识别"}</span>
-                <span>隐私：本站不保存 Cookie 和视频文件；后端安全处理以代码审计为准。</span>
+                <span>
+                  运行状态：
+                  {runtimeStatus
+                    ? runtimeStatus.resolverReady
+                      ? "解析组件已就绪"
+                      : "服务端依赖缺失"
+                    : "正在检测"}
+                  。隐私：本站不保存 Cookie 和视频文件；后端安全处理以代码审计为准。
+                </span>
               </div>
             </form>
 

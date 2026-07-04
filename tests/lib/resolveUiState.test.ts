@@ -12,6 +12,10 @@ describe("classifyResolveError", () => {
     expect(classifyResolveError("该平台需要账号态。请先输入本站访问码")).toMatchObject({ kind: "login-required" });
     expect(classifyResolveError("该链接似乎涉及私密、付费或 DRM 受限内容")).toMatchObject({ kind: "protected-content" });
     expect(classifyResolveError("fetch failed")).toMatchObject({ kind: "network", retry: true });
+    expect(classifyResolveError("RESOLVER_DEPENDENCY_MISSING: 服务器尚未安装视频解析组件")).toMatchObject({
+      kind: "server-config",
+      retry: false
+    });
   });
 
   it("never returns the full cookie for display", () => {

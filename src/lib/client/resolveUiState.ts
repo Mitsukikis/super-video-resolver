@@ -10,6 +10,7 @@ export type ResolveErrorKind =
   | "timeout"
   | "no-downloadable-resource"
   | "network"
+  | "server-config"
   | "parser-failed"
   | "unknown";
 
@@ -50,6 +51,16 @@ export function classifyResolveError(message: string): ClassifiedResolveError {
       title: "平台暂不支持",
       message: "当前后端没有这个平台的解析器。",
       nextAction: "请换用 YouTube、Bilibili 或 X / Twitter 链接。",
+      retry: false
+    };
+  }
+
+  if (/RESOLVER_DEPENDENCY_MISSING|服务器尚未安装视频解析组件|SERVER_FFMPEG_MISSING/i.test(text)) {
+    return {
+      kind: "server-config",
+      title: "服务器解析组件未就绪",
+      message: "服务器尚未安装视频解析组件，请联系管理员完成配置。",
+      nextAction: "管理员需要安装 yt-dlp，并确认服务进程可以通过 YTDLP_PATH 或 PATH 找到它。",
       retry: false
     };
   }
@@ -149,4 +160,3 @@ export function redactCookieForDisplay(cookie: string) {
     .filter(Boolean)
     .join("; ");
 }
-
