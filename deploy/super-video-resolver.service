@@ -7,12 +7,10 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/apps/super-video-resolver
 Environment=NODE_ENV=production
-Environment=PORT=80
+Environment=PORT=4000
 EnvironmentFile=-/home/ubuntu/apps/super-video-resolver/.env.production
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-CapabilityBoundingSet=CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=/usr/bin/npm run start -- -p 80 -H 0.0.0.0
+ExecStart=/usr/bin/npm run start -- -p 4000 -H 0.0.0.0
 Restart=always
 RestartSec=5
 

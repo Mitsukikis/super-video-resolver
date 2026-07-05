@@ -18,4 +18,10 @@ describe("resolveService", () => {
       })
     ).rejects.toThrow("使用临时 Cookie 解析需要先登录");
   });
+
+  it("rejects X profile links before calling the resolver", async () => {
+    const service = createResolveService([], new MemoryRateLimiter());
+
+    await expect(service.resolve({ url: "https://x.com/NASA", ip: "1.1.1.1" })).rejects.toThrow("/status/");
+  });
 });

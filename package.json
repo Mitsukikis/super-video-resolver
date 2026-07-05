@@ -8,6 +8,8 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "visual:shots": "npm run build && playwright test tests/visual/resolver-visual.spec.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -21,10 +23,14 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@playwright/test": "^1.61.1",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^15.5.20",
     "jsdom": "^26.0.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

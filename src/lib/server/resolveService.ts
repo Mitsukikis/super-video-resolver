@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Manifest } from "@/lib/manifest";
-import { detectPlatform, normalizeInputUrl } from "@/lib/platform";
+import { detectPlatform, isTwitterStatusUrl, normalizeInputUrl, normalizePlatformUrl } from "@/lib/platform";
 import { checkPolicy } from "@/lib/policy";
 import { MemoryRateLimiter, resolveRateLimiter } from "@/lib/rateLimit";
 import type { ResolverPlugin } from "@/lib/resolvers/types";
@@ -15,9 +15,12 @@ export type ResolveRequest = {
 export function createResolveService(plugins: ResolverPlugin[], limiter: MemoryRateLimiter = resolveRateLimiter) {
   return {
     async resolve(request: ResolveRequest): Promise<Manifest> {
-      const url = normalizeInputUrl(request.url);
+      const url = normalizePlatformUrl(normalizeInputUrl(request.url));
       const platform = detectPlatform(url);
       if (!platform) throw new Error("暂不支持该平台");
+      if (platform === "x" && !isTwitterStatusUrl(url)) {
+        throw new Error("X/Twitter 无法识别推文。请粘贴单条公开推文的 /status/ 链接，而不是个人主页、搜索页或列表页。");
+      }
 
       const policy = checkPolicy(url);
       if (!policy.allowed) throw new Error(policy.reason);
