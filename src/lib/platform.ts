@@ -28,3 +28,23 @@ export function detectPlatform(url: URL): Platform | null {
   if (host === "x.com" || host === "twitter.com" || host.endsWith(".twitter.com")) return "x";
   return null;
 }
+
+export function normalizePlatformUrl(url: URL): URL {
+  const platform = detectPlatform(url);
+  if (platform !== "x") return url;
+
+  const normalized = new URL(url.toString());
+  const host = normalized.hostname.toLowerCase().replace(/^www\./, "");
+  if (host === "mobile.twitter.com") {
+    normalized.hostname = "twitter.com";
+  }
+  normalized.search = "";
+  normalized.hash = "";
+  return normalized;
+}
+
+export function isTwitterStatusUrl(url: URL): boolean {
+  if (detectPlatform(url) !== "x") return false;
+
+  return /^\/(?:[^/]+\/status|i\/web\/status)\/\d+(?:\/.*)?$/i.test(url.pathname);
+}

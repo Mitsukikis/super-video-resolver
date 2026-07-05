@@ -88,6 +88,36 @@ export function classifyResolveError(message: string): ClassifiedResolveError {
     };
   }
 
+  if (/X\/Twitter .*源站策略拦截|X\/Twitter .*临时限流/i.test(text)) {
+    return {
+      kind: "source-blocked",
+      title: "X / Twitter 源站策略拦截",
+      message: "X / Twitter 当前请求被源站策略拦截或临时限流。",
+      nextAction: "稍后重试；如果确认自己有权限访问该内容，可以登录本站后提供自己的平台 Cookie。",
+      retry: true
+    };
+  }
+
+  if (/X\/Twitter .*受保护账号|X\/Twitter .*私密推文/i.test(text)) {
+    return {
+      kind: "protected-content",
+      title: "受保护或私密内容",
+      message: "该推文来自受保护账号或不是公开可访问内容。",
+      nextAction: "本站不绕过受保护账号、私密推文、付费内容或账号权限；请换公开推文测试。",
+      retry: false
+    };
+  }
+
+  if (/X\/Twitter .*没有内嵌视频|MP4 variants/i.test(text)) {
+    return {
+      kind: "no-downloadable-resource",
+      title: "推文里没有可下载视频",
+      message: "解析器没有在这条推文里找到 X / Twitter 原生视频或可下载 MP4 variants。",
+      nextAction: "确认链接是单条公开推文，并且推文本身包含内嵌视频或 GIF；外部视频卡片暂不支持。",
+      retry: true
+    };
+  }
+
   if (/使用临时 Cookie 解析需要先登录/.test(text)) {
     return {
       kind: "cookie-missing",
