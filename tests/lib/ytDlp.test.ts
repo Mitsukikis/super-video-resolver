@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { convertYtDlpInfoToManifest, formatYtDlpError } from "@/lib/resolvers/ytDlp";
+import { buildYtDlpBaseArgs, convertYtDlpInfoToManifest, formatYtDlpError } from "@/lib/resolvers/ytDlp";
 
 describe("convertYtDlpInfoToManifest", () => {
   it("creates combined and split variants", () => {
@@ -60,5 +60,41 @@ describe("convertYtDlpInfoToManifest", () => {
     expect(formatted).toBe("ERROR: [youtube] abc123: Video unavailable");
     expect(formatted).not.toContain("C:\\Users");
     expect(formatted).not.toContain("RequestsDependencyWarning");
+  });
+
+  it("maps Bilibili HTTP 412 as public source policy blocking, not a default Cookie requirement", () => {
+    const formatted = formatYtDlpError(
+      "ERROR: [BiliBili] 1GJ411x7h7: Unable to download JSON metadata: HTTP Error 412: Precondition Failed"
+    );
+
+    expect(formatted).toContain("Bilibili");
+    expect(formatted).toContain("HTTP 412");
+    expect(formatted).toContain("公开视频");
+    expect(formatted).toContain("源站策略");
+    expect(formatted).not.toContain("请提供 Cookie");
+  });
+
+  it("maps Bilibili b23 short-link expansion failures separately", () => {
+    const formatted = formatYtDlpError("ERROR: [BiliBili] b23.tv short URL redirect failed: HTTP Error 404: Not Found");
+
+    expect(formatted).toContain("b23.tv");
+    expect(formatted).toContain("短链");
+  });
+
+  it("maps Bilibili invalid Cookie and high-quality login cases separately", () => {
+    expect(formatYtDlpError("ERROR: [BiliBili] invalid SESSDATA cookie")).toContain("Cookie 可能已失效");
+    expect(formatYtDlpError("ERROR: [BiliBili] Login is required for 1080P high quality formats")).toContain("高画质");
+  });
+
+  it("adds Bilibili public request headers without requiring Cookie", () => {
+    const args = buildYtDlpBaseArgs("bilibili");
+
+    expect(args).toContain("--retries");
+    expect(args).toContain("--fragment-retries");
+    expect(args).toContain("Referer:https://www.bilibili.com/");
+    expect(args).toContain("Origin:https://www.bilibili.com");
+    expect(args.some((arg) => arg.startsWith("User-Agent:"))).toBe(true);
+    expect(args).not.toContain("--cookies");
+    expect(args.some((arg) => /^Cookie:/i.test(arg))).toBe(false);
   });
 });

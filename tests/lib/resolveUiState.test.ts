@@ -18,6 +18,13 @@ describe("classifyResolveError", () => {
     });
   });
 
+  it("maps Bilibili 412 source blocking without treating it as a default login requirement", () => {
+    expect(classifyResolveError("Bilibili 公开视频接口被源站策略拦截（HTTP 412）。")).toMatchObject({
+      kind: "source-blocked",
+      retry: true
+    });
+  });
+
   it("never returns the full cookie for display", () => {
     expect(redactCookieForDisplay("auth_token=abc123; ct0=def456")).toBe("auth_token=***; ct0=***");
     expect(redactCookieForDisplay("# Netscape HTTP Cookie File\n.x.com\tTRUE\t/\tTRUE\t1\tauth_token\tabc")).toContain("[cookies.txt]");

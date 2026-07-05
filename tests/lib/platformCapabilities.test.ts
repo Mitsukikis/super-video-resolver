@@ -15,6 +15,12 @@ describe("platformCapabilities", () => {
       canResolve: true
     });
 
+    expect(detectInputPlatform("https://b23.tv/BV1GJ411x7h7")).toMatchObject({
+      status: "supported",
+      platformId: "bilibili",
+      canResolve: true
+    });
+
     expect(detectInputPlatform("https://www.douyin.com/video/123")).toMatchObject({
       status: "planned",
       platformId: "douyin",
