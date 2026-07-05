@@ -47,14 +47,14 @@ export const platformCapabilities: Record<UiPlatformId, PlatformCapability> = {
     id: "bilibili",
     label: "Bilibili",
     shortLabel: "B站",
-    domains: ["bilibili.com"],
-    status: "supported",
-    statusLabel: "已支持",
+    domains: ["bilibili.com", "b23.tv"],
+    status: "limited",
+    statusLabel: "有限支持",
     resolveEnabled: true,
     cookieRequirement: "sometimes",
     browserMerge: "unlikely",
     outputTypes: ["已合并", "音视频分离", "HLS/DASH"],
-    notes: "公开链接可解析；高画质或账号可见内容可能需要平台 Cookie。"
+    notes: "公开视频优先无 Cookie 解析；高画质、登录态、会员、私密、地区限制或源站风控可能需要用户自己的 Bilibili Cookie，或无法解析。"
   },
   x: {
     id: "x",

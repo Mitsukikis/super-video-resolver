@@ -7,6 +7,7 @@ export type ResolveErrorKind =
   | "login-required"
   | "protected-content"
   | "rate-limited"
+  | "source-blocked"
   | "timeout"
   | "no-downloadable-resource"
   | "network"
@@ -71,6 +72,16 @@ export function classifyResolveError(message: string): ClassifiedResolveError {
       title: "需要站内授权",
       message: "临时 Cookie 输入需要先使用本站访问码解锁。",
       nextAction: "先完成站内授权，再粘贴对应视频平台 Cookie 后重试。",
+      retry: true
+    };
+  }
+
+  if (/Bilibili .*HTTP 412|Bilibili .*源站策略|Bilibili .*请求过频|Bilibili .*IP 限制/i.test(text)) {
+    return {
+      kind: "source-blocked",
+      title: "Bilibili 源站策略拦截",
+      message: "Bilibili 当前公开视频请求被源站策略、IP 限制或临时风控拦截。",
+      nextAction: "稍后重试、换一个公开视频，或降低高画质预期；只有确认是自己账号可访问的登录态内容时，再临时提供 Bilibili Cookie。",
       retry: true
     };
   }
