@@ -1,4 +1,3 @@
-import { ParticleField } from "@/components/ParticleField";
 import { PlatformCapabilitySections, PrivacyAndHowItWorks } from "@/components/PlatformCapabilitySections";
 import { TopNav } from "@/components/TopNav";
 import { UniversalResolverWorkspace } from "@/components/UniversalResolverWorkspace";
@@ -13,18 +12,15 @@ export default async function HomePage() {
   const plannedPlatforms = getPlannedPlatforms();
 
   return (
-    <>
-      <ParticleField />
-      <main className="app-shell">
-        <TopNav loggedIn={loggedIn} platforms={livePlatforms} />
-        <UniversalResolverWorkspace
-          loggedIn={loggedIn}
-          livePlatforms={livePlatforms}
-          plannedPlatforms={plannedPlatforms}
-        />
-        <PlatformCapabilitySections livePlatforms={livePlatforms} plannedPlatforms={plannedPlatforms} />
-        <PrivacyAndHowItWorks />
-      </main>
-    </>
+    <main className="app-shell">
+      <TopNav loggedIn={loggedIn} platforms={livePlatforms} />
+      <UniversalResolverWorkspace
+        loggedIn={loggedIn}
+        livePlatforms={livePlatforms}
+        plannedPlatforms={plannedPlatforms}
+      />
+      <PlatformCapabilitySections livePlatforms={livePlatforms} plannedPlatforms={plannedPlatforms} />
+      <PrivacyAndHowItWorks />
+    </main>
   );
 }

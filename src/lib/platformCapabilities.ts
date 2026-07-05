@@ -1,5 +1,5 @@
 import type { Platform } from "./manifest";
-import { detectPlatform, normalizeInputUrl } from "./platform";
+import { detectPlatform, isTwitterStatusUrl, normalizeInputUrl } from "./platform";
 
 export type PlannedPlatform = "douyin" | "xiaohongshu" | "weibo";
 export type UiPlatformId = Platform | PlannedPlatform;
@@ -60,14 +60,14 @@ export const platformCapabilities: Record<UiPlatformId, PlatformCapability> = {
     id: "x",
     label: "X / Twitter",
     shortLabel: "X",
-    domains: ["x.com", "twitter.com"],
+    domains: ["x.com", "twitter.com", "mobile.twitter.com"],
     status: "limited",
     statusLabel: "有限支持",
     resolveEnabled: true,
-    cookieRequirement: "often",
+    cookieRequirement: "sometimes",
     browserMerge: "unlikely",
-    outputTypes: ["已合并", "音视频分离"],
-    notes: "帖子类型、敏感内容、私密内容和登录态会影响解析；并非每条帖子都含可下载视频。"
+    outputTypes: ["MP4 variants", "已合并"],
+    notes: "公开原生视频优先无 Cookie 解析；受保护账号、敏感/年龄限制、地区限制或登录态内容可能需要用户自己的平台 Cookie。"
   },
   douyin: {
     id: "douyin",
@@ -155,6 +155,17 @@ export function detectInputPlatform(input: string): PlatformDetection {
 
   const platform = detectPlatform(url);
   if (platform) {
+    if (platform === "x" && !isTwitterStatusUrl(url)) {
+      return {
+        status: "invalid",
+        canResolve: false,
+        platformId: platform,
+        capability: platformCapabilities[platform],
+        label: "需要单条推文链接",
+        message: "请粘贴 X / Twitter 单条公开视频的 /status/ 链接，个人主页、搜索页和列表页不能直接解析。"
+      };
+    }
+
     const capability = platformCapabilities[platform];
     return {
       status: "supported",
@@ -186,4 +197,3 @@ export function detectInputPlatform(input: string): PlatformDetection {
     message: "当前只能解析 YouTube、Bilibili 和 X / Twitter 链接。"
   };
 }
-

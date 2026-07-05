@@ -31,14 +31,33 @@ export function detectPlatform(url: URL): Platform | null {
 
 export function normalizePlatformUrl(url: URL): URL {
   const platform = detectPlatform(url);
-  if (platform !== "bilibili") return url;
+  if (!platform) return url;
 
   const normalized = new URL(url.toString());
-  const page = normalized.searchParams.get("p");
-  normalized.search = "";
-  if (page && /^\d+$/.test(page) && Number(page) > 1) {
-    normalized.searchParams.set("p", page);
+  if (platform === "bilibili") {
+    const page = normalized.searchParams.get("p");
+    normalized.search = "";
+    if (page && /^\d+$/.test(page) && Number(page) > 1) {
+      normalized.searchParams.set("p", page);
+    }
+    normalized.hash = "";
+    return normalized;
   }
-  normalized.hash = "";
+
+  if (platform === "x") {
+    const host = normalized.hostname.toLowerCase().replace(/^www\./, "");
+    if (host === "mobile.twitter.com") {
+      normalized.hostname = "twitter.com";
+    }
+    normalized.search = "";
+    normalized.hash = "";
+  }
+
   return normalized;
+}
+
+export function isTwitterStatusUrl(url: URL): boolean {
+  if (detectPlatform(url) !== "x") return false;
+
+  return /^\/(?:[^/]+\/status|i\/web\/status)\/\d+(?:\/.*)?$/i.test(url.pathname);
 }

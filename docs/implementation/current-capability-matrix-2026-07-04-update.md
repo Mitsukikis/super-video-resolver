@@ -19,7 +19,7 @@ This update records the acceptance results after the V2 runtime dependency and v
 | Platform | Adapter status | 2026-07-04 real E2E result |
 | --- | --- | --- |
 | YouTube | Implemented through yt-dlp | Public test video resolved successfully with 11 tracks and 7 variants |
-| Bilibili | Implemented through yt-dlp | Current public sample failed with source HTTP 412 |
+| Bilibili | Limited support through yt-dlp | Current public sample still failed with source HTTP 412, now classified as source-policy blocked with Cookie guidance |
 | X / Twitter | Implemented through yt-dlp | Current public sample had no downloadable video |
 | Douyin | Not implemented | Must not be displayed as parseable |
 | Xiaohongshu | Not implemented | Must not be displayed as parseable |
@@ -36,6 +36,16 @@ This update records the acceptance results after the V2 runtime dependency and v
 | Browser ffmpeg.wasm full merge | Not verified as successful; must not be claimed as generally available |
 | Local tool fallback | ffmpeg / yt-dlp commands can be generated |
 
+## Bilibili 412 Follow-up
+
+The `fix/bilibili-resolver-412` branch improves Bilibili recognition and error handling without claiming full support:
+
+- `bilibili.com` and `b23.tv` are detected as Bilibili inputs.
+- Bilibili requests include finite yt-dlp retries plus Bilibili-specific `Referer` and desktop `User-Agent` headers.
+- HTTP 412 is no longer shown as a generic parser failure; it is mapped to source-policy blocking / possible Cookie requirement.
+- Invalid BV links are no longer misclassified as missing server dependencies.
+- Successful Bilibili manifest extraction was not observed in the local E2E run, so Bilibili must remain labeled as limited support.
+
 ## Verification Tooling
 
 | Tooling | Current status |
@@ -45,4 +55,3 @@ This update records the acceptance results after the V2 runtime dependency and v
 | unit tests | `npm test` |
 | production build | `npm run build` |
 | visual screenshots | `npm run visual:shots` using Playwright |
-

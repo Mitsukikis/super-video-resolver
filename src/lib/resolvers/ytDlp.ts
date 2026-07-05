@@ -49,8 +49,21 @@ function positiveInt(value: number | null | undefined) {
   return number ? Math.round(number) : undefined;
 }
 
-function trackKind(format: YtDlpFormat): Track["kind"] {
+function trackKind(format: YtDlpFormat, platform: Platform): Track["kind"] {
   const protocol = format.protocol?.toLowerCase() ?? "";
+  const isDirectHttp = protocol === "http" || protocol === "https" || /^https?:\/\//i.test(format.url ?? "");
+
+  if (
+    platform === "x" &&
+    format.ext === "mp4" &&
+    isDirectHttp &&
+    /^http-/i.test(format.format_id ?? "") &&
+    positiveNumber(format.width) &&
+    positiveNumber(format.height)
+  ) {
+    return "combined";
+  }
+
   if (protocol.includes("m3u8") || format.ext === "m3u8") return "hls";
   if (protocol.includes("dash") || format.ext === "mpd") return "dash";
 
@@ -68,7 +81,7 @@ function formatLabel(track: Track) {
   return track.id;
 }
 
-const bilibiliUserAgent =
+const desktopUserAgent =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
 export function buildYtDlpBaseArgs(platform: Platform) {
@@ -77,7 +90,11 @@ export function buildYtDlpBaseArgs(platform: Platform) {
   if (platform === "bilibili") {
     args.push("--add-header", "Referer:https://www.bilibili.com/");
     args.push("--add-header", "Origin:https://www.bilibili.com");
-    args.push("--add-header", `User-Agent:${bilibiliUserAgent}`);
+    args.push("--add-header", `User-Agent:${desktopUserAgent}`);
+  }
+  if (platform === "x") {
+    args.push("--add-header", "Referer:https://x.com/");
+    args.push("--add-header", `User-Agent:${desktopUserAgent}`);
   }
 
   return args;
@@ -105,6 +122,32 @@ export function formatYtDlpError(message: string) {
   if (/ENOENT|is not recognized|No such file or directory|yt-dlp(?:\.exe)?: command not found/i.test(text)) {
     return resolverDependencyMissingMessage;
   }
+  if (/\[(twitter|x)\]|Twitter|X\/Twitter|tweet/i.test(text)) {
+    if (/No video could be found in this tweet|no downloadable video|no media found/i.test(text)) {
+      return "X/Twitter 推文里没有内嵌视频或可下载 MP4 variants。请确认链接是单条公开推文，并且推文本身包含 Twitter/X 原生视频或 GIF。";
+    }
+    if (/protected|private|not authorized|permission|Forbidden/i.test(text)) {
+      return "X/Twitter 受保护账号或私密推文无法解析。本站不绕过受保护账号、私密内容或账号权限。";
+    }
+    if (/login required|sign in|authentication|not logged in|cookies?|age|sensitive|adult/i.test(text)) {
+      return "X/Twitter 需要登录或年龄/敏感内容确认。请确认是公开视频；必要时登录本站后粘贴自己的 X/Twitter 临时 Cookie。";
+    }
+    if (/not found|does not exist|unavailable|deleted|suspended/i.test(text)) {
+      return "X/Twitter 推文不存在、已删除、账号异常或无法公开访问。请换一个公开公开视频推文测试。";
+    }
+    if (/external|card|player|youtube|vimeo|periscope|broadcast/i.test(text)) {
+      return "X/Twitter 推文包含外部视频卡片，当前只支持 Twitter/X 原生视频和 GIF 的 MP4 variants。";
+    }
+    if (/region|country|geo|location/i.test(text)) {
+      return "X/Twitter 视频可能存在地区限制。本站不绕过地区、账号或平台访问限制。";
+    }
+    if (/429|rate|guest token|Precondition Failed|HTTP Error 4\d\d/i.test(text)) {
+      return "X/Twitter 源站策略拦截或临时限流。可以稍后重试，或在有权限的前提下提供自己的平台 Cookie。";
+    }
+    if (/Unsupported URL|Unable to extract|extractor|update yt-dlp/i.test(text)) {
+      return "X/Twitter 解析器可能需要更新。请联系管理员更新 yt-dlp 后重试。";
+    }
+  }
   if (/BiliBili|bilibili|b23\.tv/i.test(text)) {
     if (/b23\.tv|short URL|redirect/i.test(text)) {
       return "Bilibili b23.tv 短链展开失败。请换用完整的 bilibili.com/video/BV... 链接，或稍后重试。";
@@ -128,9 +171,6 @@ export function formatYtDlpError(message: string) {
       return "Bilibili 解析器可能需要更新。请联系管理员更新 yt-dlp 后重试。";
     }
   }
-  if (/twitter].*No video could be found in this tweet/i.test(text)) {
-    return "X/Twitter 没在这条帖子里找到可下载视频。可能是图片/文字帖、引用帖、私密/敏感/登录可见内容，或需要粘贴 X 的临时 Cookie。";
-  }
   if (/login|sign in|cookies?|authentication|unauthori[sz]ed/i.test(text)) {
     return "该平台需要账号态。请先输入本站访问码，再粘贴对应平台的临时 Cookie 后重试。";
   }
@@ -148,7 +188,7 @@ export function convertYtDlpInfoToManifest(
   for (const format of info.formats ?? []) {
     if (!format.url || !format.format_id) continue;
     if (format.ext === "mhtml" || format.protocol === "mhtml") continue;
-    const kind = trackKind(format);
+    const kind = trackKind(format, platform);
     tracks.push({
       id: format.format_id,
       kind,
@@ -233,7 +273,7 @@ export function convertYtDlpInfoToManifest(
   return ManifestSchema.parse(manifest);
 }
 
-export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
+async function runYtDlpOnce(input: ResolveInput, temporaryCookie?: string): Promise<Manifest> {
   const executable = resolveYtDlpExecutable();
   if (!executable.available) {
     throw new Error(executable.message);
@@ -248,7 +288,7 @@ export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
     args.push("--proxy", proxy);
   }
 
-  const cookieInput = classifyTemporaryCookie(input.temporaryCookie);
+  const cookieInput = classifyTemporaryCookie(temporaryCookie);
   if (cookieInput.kind === "header") {
     args.push(...cookieInput.args);
   } else if (cookieInput.kind === "file") {
@@ -291,12 +331,25 @@ export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
     });
 
     const info = JSON.parse(output) as YtDlpInfo;
-    return convertYtDlpInfoToManifest(info, input.platform, input.url.toString(), Boolean(input.temporaryCookie));
+    return convertYtDlpInfoToManifest(info, input.platform, input.url.toString(), Boolean(temporaryCookie));
   } finally {
     if (cookieTempDir) {
       await rm(cookieTempDir, { recursive: true, force: true });
     }
   }
+}
+
+export async function runYtDlp(input: ResolveInput): Promise<Manifest> {
+  const temporaryCookie = input.temporaryCookie?.trim();
+  if (input.platform === "x" && temporaryCookie) {
+    try {
+      return await runYtDlpOnce(input);
+    } catch {
+      return runYtDlpOnce(input, temporaryCookie);
+    }
+  }
+
+  return runYtDlpOnce(input, temporaryCookie);
 }
 
 export function createYtDlpResolver(platform: Platform): ResolverPlugin {
