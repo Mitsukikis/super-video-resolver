@@ -26,6 +26,12 @@ describe("platformCapabilities", () => {
       canResolve: false
     });
 
+    expect(detectInputPlatform("https://x.com/NASA")).toMatchObject({
+      status: "invalid",
+      platformId: "x",
+      canResolve: false
+    });
+
     expect(detectInputPlatform("ftp://example.com/file")).toMatchObject({
       status: "invalid",
       canResolve: false
@@ -37,4 +43,3 @@ describe("platformCapabilities", () => {
     });
   });
 });
-

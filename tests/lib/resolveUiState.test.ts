@@ -30,6 +30,21 @@ describe("classifyResolveError", () => {
     });
   });
 
+  it("maps X / Twitter errors to specific UI categories", () => {
+    expect(classifyResolveError("X/Twitter 推文里没有内嵌视频或可下载 MP4 variants。")).toMatchObject({
+      kind: "no-downloadable-resource",
+      retry: true
+    });
+    expect(classifyResolveError("X/Twitter 受保护账号或私密推文无法解析。")).toMatchObject({
+      kind: "protected-content",
+      retry: false
+    });
+    expect(classifyResolveError("X/Twitter 源站策略拦截或临时限流。")).toMatchObject({
+      kind: "source-blocked",
+      retry: true
+    });
+  });
+
   it("never returns the full cookie for display", () => {
     expect(redactCookieForDisplay("auth_token=abc123; ct0=def456")).toBe("auth_token=***; ct0=***");
     expect(redactCookieForDisplay("# Netscape HTTP Cookie File\n.x.com\tTRUE\t/\tTRUE\t1\tauth_token\tabc")).toContain(

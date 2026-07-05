@@ -98,9 +98,16 @@ describe("convertYtDlpInfoToManifest", () => {
   });
 
   it("turns Twitter no-video errors into a helpful platform message", () => {
-    expect(formatYtDlpError("ERROR: [twitter] 2072701117067342056: No video could be found in this tweet")).toContain(
-      "X/Twitter"
-    );
+    const formatted = formatYtDlpError("ERROR: [twitter] 2072701117067342056: No video could be found in this tweet");
+
+    expect(formatted).toContain("X/Twitter");
+    expect(formatted).toContain("推文里没有内嵌视频");
+    expect(formatted).not.toContain("Cookie");
+  });
+
+  it("maps Twitter login and protected-account errors separately", () => {
+    expect(formatYtDlpError("ERROR: [twitter] 1: This tweet is unavailable. Login required")).toContain("需要登录");
+    expect(formatYtDlpError("ERROR: [twitter] 1: User has been suspended or protected")).toContain("受保护账号");
   });
 
   it("turns missing yt-dlp startup errors into a server configuration error", () => {
@@ -143,5 +150,58 @@ describe("convertYtDlpInfoToManifest", () => {
     expect(args).toContain("--fragment-retries");
     expect(args).toContain("Referer:https://www.bilibili.com/");
     expect(args.some((arg) => arg.startsWith("User-Agent:"))).toBe(true);
+  });
+
+  it("adds X / Twitter public-request headers without requiring Cookie", () => {
+    const args = buildYtDlpBaseArgs("x");
+
+    expect(args).toContain("--retries");
+    expect(args).toContain("--fragment-retries");
+    expect(args).toContain("Referer:https://x.com/");
+    expect(args.some((arg) => arg.startsWith("User-Agent:"))).toBe(true);
+    expect(args).not.toContain("--cookies");
+    expect(args.some((arg) => /^Cookie:/i.test(arg))).toBe(false);
+  });
+
+  it("maps X / Twitter mp4 variants into direct-save manifest options", () => {
+    const manifest = convertYtDlpInfoToManifest(
+      {
+        title: "Twitter Fixture",
+        uploader: "Fixture Author",
+        thumbnail: "https://pbs.twimg.com/ext_tw_video_thumb/fixture.jpg",
+        formats: [
+          {
+            format_id: "http-832",
+            url: "https://video.twimg.com/ext_tw_video/fixture/pu/vid/640x360/video.mp4",
+            ext: "mp4",
+            protocol: "https",
+            width: 640,
+            height: 360,
+            tbr: 832,
+            filesize_approx: 3200000
+          },
+          {
+            format_id: "http-2176",
+            url: "https://video.twimg.com/ext_tw_video/fixture/pu/vid/1280x720/video.mp4",
+            ext: "mp4",
+            protocol: "https",
+            width: 1280,
+            height: 720,
+            tbr: 2176,
+            filesize_approx: 8400000
+          }
+        ]
+      },
+      "x",
+      "https://x.com/user/status/1?s=20",
+      false
+    );
+
+    expect(manifest.platform).toBe("x");
+    expect(manifest.author).toBe("Fixture Author");
+    expect(manifest.tracks).toHaveLength(2);
+    expect(manifest.tracks.every((track) => track.kind === "combined")).toBe(true);
+    expect(manifest.variants.every((variant) => variant.action === "direct-save")).toBe(true);
+    expect(manifest.warnings).toHaveLength(0);
   });
 });
