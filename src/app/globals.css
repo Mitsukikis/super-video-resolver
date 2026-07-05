@@ -19,8 +19,8 @@
   --danger: #fb7185;
   --radius-sm: 6px;
   --radius-md: 8px;
-  --shadow-soft: 0 16px 42px rgba(0, 0, 0, 0.3);
-  --shadow-tight: 0 8px 22px rgba(0, 0, 0, 0.24);
+  --shadow-soft: none;
+  --shadow-tight: none;
   --max-page: 1440px;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -32,26 +32,30 @@
 html {
   min-height: 100%;
   background: var(--bg);
-  scroll-behavior: smooth;
   overflow-x: hidden;
 }
 
 body {
+  position: relative;
   min-height: 100%;
   margin: 0;
-  background:
-    linear-gradient(rgba(199, 255, 64, 0.034) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(57, 216, 200, 0.024) 1px, transparent 1px),
-    radial-gradient(circle at 85% 18%, rgba(215, 255, 63, 0.1), transparent 26%),
-    linear-gradient(145deg, #070809 0%, #0d1113 48%, #11100d 100%);
-  background-size: 56px 56px, 56px 56px, auto, auto;
+  background: #080a0d;
   color: var(--text);
   font-family: "Inter", "PingFang SC", "Microsoft YaHei", Arial, Helvetica, sans-serif;
   overflow-x: hidden;
 }
 
 body::before {
-  content: none;
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 760px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 84% 8%, rgba(215, 255, 63, 0.1), transparent 28%),
+    radial-gradient(circle at 14% 54%, rgba(57, 216, 200, 0.07), transparent 28%),
+    linear-gradient(145deg, rgba(10, 13, 14, 0.94), rgba(8, 10, 13, 0));
 }
 
 button,
@@ -98,28 +102,17 @@ dd {
   margin: 0;
 }
 
-.particle-field {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  contain: strict;
-  opacity: 0.34;
-}
-
 .app-shell {
   width: min(var(--max-page), 100%);
   min-height: 100vh;
   margin: 0 auto;
   padding: 24px;
   position: relative;
+  z-index: 1;
 }
 
 .top-nav {
-  position: sticky;
-  top: 16px;
+  position: relative;
   z-index: 10;
   display: grid;
   grid-template-columns: minmax(210px, auto) 1fr auto;
@@ -210,12 +203,10 @@ dd {
   height: 8px;
   border-radius: 999px;
   background: var(--warning);
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.52);
 }
 
 .status-dot.is-ok {
   background: var(--success);
-  box-shadow: 0 0 10px rgba(74, 222, 128, 0.52);
 }
 
 .nav-divider {
@@ -305,8 +296,6 @@ dd {
 }
 
 .platform-rail {
-  position: sticky;
-  top: 104px;
   display: grid;
   gap: 18px;
   padding: 14px;
@@ -339,17 +328,13 @@ dd {
   background: transparent;
   color: var(--text-soft);
   text-align: left;
-  transition: background 180ms var(--ease-out), border-color 180ms var(--ease-out), transform 180ms var(--ease-out);
+  transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
 }
 
 .rail-item:hover,
 .rail-item.is-active {
   border-color: rgba(215, 255, 63, 0.34);
   background: rgba(215, 255, 63, 0.08);
-}
-
-.rail-item:hover {
-  transform: translateY(-1px);
 }
 
 .rail-item.is-planned {
@@ -395,13 +380,6 @@ dd {
 .platform-card,
 .process-list article {
   contain: paint;
-}
-
-.results-zone,
-.task-center,
-.content-section {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 720px;
 }
 
 .access-panel,
@@ -597,7 +575,7 @@ dd {
   min-height: 44px;
   border-radius: var(--radius-md);
   font-weight: 900;
-  transition: transform 170ms var(--ease-out), border-color 170ms var(--ease-out), background 170ms var(--ease-out);
+  transition: background-color 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out), opacity 160ms var(--ease-out);
 }
 
 .primary-button {
@@ -605,19 +583,12 @@ dd {
   padding: 10px 16px;
   background: linear-gradient(135deg, #d7ff3f, #88ff7a);
   color: #101204;
-  box-shadow: 0 10px 22px rgba(215, 255, 63, 0.12);
 }
 
 .primary-button.secondary {
   border-color: rgba(57, 216, 200, 0.72);
   background: linear-gradient(135deg, #39d8c8, #8af7e5);
   color: #031615;
-}
-
-.primary-button:hover:not(:disabled),
-.ghost-button:hover:not(:disabled),
-.cookie-toggle:hover:not(:disabled) {
-  transform: translateY(-1px);
 }
 
 .ghost-button {
@@ -1165,15 +1136,6 @@ dd {
   font-weight: 900;
 }
 
-@keyframes scanline {
-  0% {
-    transform: translateX(-78%);
-  }
-  100% {
-    transform: translateX(78%);
-  }
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1188,10 +1150,6 @@ dd {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.001ms !important;
-  }
-
-  .particle-field {
-    display: none;
   }
 }
 
@@ -1230,10 +1188,6 @@ dd {
       radial-gradient(circle at 76% 0%, rgba(215, 255, 63, 0.08), transparent 30%),
       linear-gradient(145deg, #070809 0%, #0c1012 55%, #100f0c 100%);
     background-size: auto;
-  }
-
-  .particle-field {
-    display: none;
   }
 
   .app-shell {

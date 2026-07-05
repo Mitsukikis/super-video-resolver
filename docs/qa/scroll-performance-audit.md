@@ -71,3 +71,39 @@
 ## 风险说明
 
 Playwright 的 rAF 采样能验证页面在本机 Chrome 下的滚动节奏和横向溢出，但不能完全代表所有手机浏览器和低端设备。上线前建议部署到服务器后，再用真实手机浏览器手动滑动一次首页、平台说明区和解析成功结果区。
+
+## Silky Pass - 2026-07-05
+
+线上体感反馈仍然不够丝滑后，本次做了更激进的装饰层降级，优先保证滚动手感：
+
+- 从首页移除 fixed canvas 粒子层，删除 `ParticleField` 和 `particleConfig`。
+- 移除桌面端 top nav 的 `position: sticky`。
+- 移除桌面端平台侧栏的 `position: sticky`。
+- 移除 `content-visibility: auto`，避免第一次滚到下方 section 时触发布局/绘制卡顿。
+- 将页面背景改为静态顶部轻量渐变，不再使用全页网格背景或动画背景。
+- 将全局大阴影降为 `none`，保留边框和色块层级。
+- 移除 hover 的 `transform` 位移，避免交互时额外合成。
+
+Silky pass 后的风险扫描结果：
+
+- 无 `ParticleField`
+- 无 `.particle-field`
+- 无 `position: fixed`
+- 无 `position: sticky`
+- 无 `backdrop-filter`
+- 无 `content-visibility`
+- 无 `transition: all`
+- 无 scroll 监听器
+- 首页无 `requestAnimationFrame`
+
+Silky pass Chrome 滚动采样：
+
+| Viewport | Horizontal overflow | Average frame | P95 frame | Max frame |
+| --- | --- | --- | --- | --- |
+| 1440 x 1000 | false | 16.50ms | 16.83ms | 17.15ms |
+| 390 x 844 | false | 16.49ms | 16.81ms | 16.85ms |
+
+新增截图：
+
+- `docs/design-v2/performance-scroll-preview/desktop-silky.png`
+- `docs/design-v2/performance-scroll-preview/mobile-silky.png`
